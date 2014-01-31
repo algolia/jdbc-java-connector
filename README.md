@@ -13,14 +13,32 @@ Usage:
 ------
 
 	- target: target to algolia "APPID:APPKEY:Index"
-	- output: path of configuration file
+	- output: path of file used to keep the last modification
+	- config: path of configuration file
 	- host: url jdbc
-	- mode: --dump or --update
+	- mode: dump or update
 	- username: username of the db
 	- password: password of the db
 	- query: sql query to fetch data
 	- attribute: attribute used to update
 	- time: time between to refresh
+
+Update mode:
+------------
+
+In update mode you can use the last value of the tracked attribute like this:
+
+		SELECT * FROM table WHERE _$ < UPDATED_AT
+
+Configuration File:
+-------------------
+
+It's a json.
+
+	{
+		"attributes":["attr1", "attr2", ...],
+		"track": "updated_at"
+	}
 
 
                                                                                 
