@@ -14,7 +14,9 @@ import com.algolia.search.saas.AlgoliaException;
 public class Connector {
 
 	public static void main(String[] args) throws SQLException,
-			AlgoliaException, JSONException, IOException, ParseException {
+			AlgoliaException, JSONException, IOException, ParseException, NumberFormatException, InterruptedException {
+		boolean running = false; //TODO DEV
+		
 		Settings settings = new Settings();
 		settings.parse(args);
 		if (!settings.checkArgs()) {
@@ -33,10 +35,14 @@ public class Connector {
 			return;
 		}
 		worker.parseConfig(settings.config);
-		if (!worker.fetchDataBase()) {
-			System.err.println("Error during dumping.");
-			return;
-		}
+		do {
+			if (!worker.fetchDataBase()) {
+				System.err.println("Error during dumping.");
+				return;
+			}
+			Thread.sleep(1000 * Integer.parseInt(settings.time));
+		} while (running);
+		
 	}
 
 	public Connector(String url, String username, String password) {
@@ -44,15 +50,6 @@ public class Connector {
 		username_ = username;
 		password_ = password;
 		database_ = null;
-
-		String driverName = "com.mysql.jdbc.Driver";
-		try {
-			Class.forName(driverName);
-		} catch (ClassNotFoundException cnfe) {
-			System.out.println("The class " + driverName
-					+ " not found");
-			cnfe.printStackTrace();
-		}
 	}
 
 	public boolean connect() throws SQLException {

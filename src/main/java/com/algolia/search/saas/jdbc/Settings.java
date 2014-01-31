@@ -4,27 +4,26 @@ package com.algolia.search.saas.jdbc;
 public class Settings {
 
 	public Settings() {
-		output = "";
+		output = "date.txt";
 		target = "";
-		username = "";
+		username = "root";
 		password = "";
 		host = "";
 		query = "";
-		attribute = "";
-		time = "";
-		mode = "--dump";
+		attribute = "updated_at";
+		time = "1";
+		mode = "dump";
+		config = "";
 	}
 	
 	public void parse(String[] args) {
-		for (int i  = 0; i < args.length; ++i) {
+		for (int i  = 0; i < args.length - 1; ++i) {
 			String arg = args[i];
 			if (arg.startsWith("-")) {
-				if (arg.equals("--dump")) {
-					System.out.println("Dump Mysql dataStruct to Algolia");
-					mode = arg;
-				} else if (arg.equals("--update")) {
-					System.out.println("Update Mysql dataStruct to Algolia");
-					mode = arg;
+				if (arg.equals("-m") || arg.equals("--mode")) {
+					System.out.println(args[i+1] + " Mysql dataStruct to Algolia");
+					mode = args[i+1];
+					++i;
 				} else if (arg.equals("-t") || arg.equals("--target")) {
 					target = args[i+1];
 					++i;

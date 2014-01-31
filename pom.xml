@@ -23,11 +23,23 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
 		</dependency>
+		<!-- DRIVERS JDBC -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.6</version>
 		</dependency>
+		<dependency>
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.1-901.jdbc4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.7.2</version>
+		</dependency>
+		<!-- Find solution for oracle and microsoft sql server -->
 	</dependencies>
 	<repositories>
 		<repository>
