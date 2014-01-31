@@ -54,16 +54,17 @@ public class Connector {
     private static void usage(int exitCode) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(160);
-        formatter.printHelp("jdbc-java-connector", options);
+        formatter.printHelp("jdbc-java-connector [option]... [path/to/config.json]", options);
         System.exit(exitCode);
     }
 
     public static void main(String[] args) throws ParseException, SQLException {
-        CommandLineParser p = new BasicParser();
         CommandLine cli;
 
         try {
-            cli = p.parse(options, args);
+            cli = new BasicParser().parse(options, args, false);
+            String[] unparsedTargets = cli.getArgs();
+            // TODO
         } catch (ParseException e) {
             cli = null; // avoid non-initialized warning
             System.err.println(e.getMessage());
