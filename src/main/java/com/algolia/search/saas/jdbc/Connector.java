@@ -1,5 +1,7 @@
 package com.algolia.search.saas.jdbc;
 
+import java.sql.SQLException;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -56,7 +58,7 @@ public class Connector {
         System.exit(exitCode);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException, SQLException {
         CommandLineParser p = new BasicParser();
         CommandLine cli;
 
@@ -72,8 +74,8 @@ public class Connector {
             usage(1);
         }
 
+        Worker worker;
         try {
-            Worker worker;
             if (cli.hasOption("dump")) {
                 worker = new Dumper(cli);
             } else if (cli.hasOption("update")) {
@@ -81,21 +83,24 @@ public class Connector {
             } else {
                 throw new ParseException("Either --dump or --update should be specified");
             }
-            try {
-                // do {
-                // if (!worker.fetchDataBase()) {
-                // System.err.println("Error during dumping.");
-                // return;
-                // }
-                // Thread.sleep(1000 * Integer.parseInt(settings.time));
-                // } while (running);
-                worker.run();
-            } finally {
-                worker.close();
-            }
         } catch (Exception e) {
+            worker = null; // avoid non-initialized warning
             System.err.println(e.getMessage());
             usage(2);
+        }
+        try {
+            // do {
+            // if (!worker.fetchDataBase()) {
+            // System.err.println("Error during dumping.");
+            // return;
+            // }
+            // Thread.sleep(1000 * Integer.parseInt(settings.time));
+            // } while (running);
+            worker.run();
+        } finally {
+            if (worker != null) {
+                worker.close();
+            }
         }
     }
 }
