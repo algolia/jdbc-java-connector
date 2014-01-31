@@ -49,6 +49,9 @@ public class Settings {
 				} else if (arg.equals("-t") || arg.equals("--time")) {
 					time = args[i+1];
 					++i;
+				} else if (arg.equals("-c") || arg.equals("--configuration")) {
+					config = args[i+1];
+					++i;
 				} else {
 					System.err.println("Not yet implemented feature : " + arg);
 					System.exit(1);
@@ -77,6 +80,9 @@ public class Settings {
 		System.err.print("The target : ");
 		System.err.println(target);
 		
+		System.err.print("The config : ");
+		System.err.println(config);
+		
 		System.err.print("The query : ");
 		System.err.println(query);
 		
@@ -92,6 +98,7 @@ public class Settings {
 	
 	public String mode;
 	public String output;
+	public String config;
 	public String host;
 	public String target;
 	public String username;

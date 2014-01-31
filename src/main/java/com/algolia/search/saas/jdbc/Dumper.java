@@ -33,8 +33,11 @@ public class Dumper extends Worker {
 	
 	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException {
 		List<JSONObject> json = null;
+		JSONArray attributes = null;
+		if (configuration_ != null && configuration_.get("attributes") != null)
+			attributes = (JSONArray)configuration_.get("attributes");
 		SQLQuery query = dataBase_.listTableContent(settings_.query);
-		while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty()) {
+		while (!(json = query.toJson(1000, attributes)).isEmpty()) {
 			index_.addObjects(json);
 		}
 		return true;

@@ -32,7 +32,7 @@ public class Connector {
 			System.err.println("Unable to connect");
 			return;
 		}
-		worker.parseConfig(""); //TODO
+		worker.parseConfig(settings.config);
 		if (!worker.fetchDataBase()) {
 			System.err.println("Error during dumping.");
 			return;

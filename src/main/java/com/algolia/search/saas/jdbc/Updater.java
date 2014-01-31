@@ -1,17 +1,10 @@
 package com.algolia.search.saas.jdbc;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
 import org.json.JSONException;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.algolia.search.saas.APIClient;
 import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.Index;
@@ -23,21 +16,6 @@ public class Updater extends Worker {
 		client_ = null;
 		index_ = null;
 		currentTime_ = "";
-	}
-	
-	public boolean parseConfig(String fileName) {
-		JSONParser parser = new JSONParser();
-		
-		try {
-			configuration_ = (JSONObject)parser.parse(new FileReader(fileName));
-		} catch (FileNotFoundException e) {
-			return false; //TODO
-		} catch (IOException e) {
-			return false; //TODO
-		} catch (ParseException e) {
-			return false; //TODO 
-		}
-		return true;
 	}
 	
 	public boolean connect() throws SQLException {
@@ -56,10 +34,13 @@ public class Updater extends Worker {
 		JSONArray attributes = null;
 		if (configuration_ != null && configuration_.get("attributes") != null)
 			attributes = (JSONArray)configuration_.get("attributes");
+		
 		String sql = settings_.query.replaceAll("_\\$", currentTime_);
 		SQLQuery query = dataBase_.listTableContent(sql);
+		
 		if (configuration_ != null && configuration_.get("track") != null)
 			query.trackAttribute((String)configuration_.get("track"));
+		
 		while (!(json = query.toJson(1000, attributes)).isEmpty()) {
 			index_.addObjects(json);
 		}
