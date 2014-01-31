@@ -1,4 +1,4 @@
-package SQLConnector;
+package com.algolia.search.saas.jdbc;
 
 /**
  * Hello world!

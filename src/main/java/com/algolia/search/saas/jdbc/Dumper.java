@@ -1,4 +1,4 @@
-package SQLConnector;
+package com.algolia.search.saas.jdbc;
 
 import java.sql.SQLException;
 import java.util.List;

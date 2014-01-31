@@ -1,4 +1,4 @@
-package SQLConnector;
+package com.algolia.search.saas.jdbc;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;

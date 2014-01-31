@@ -1,4 +1,4 @@
-package SQLConnector;
+package com.algolia.search.saas.jdbc;
 
 import java.sql.DriverManager;
 import java.sql.ResultSet;

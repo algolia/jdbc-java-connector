@@ -1,4 +1,4 @@
-package SQLConnector;
+package com.algolia.search.saas.jdbc;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
