@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.JSONArray;
@@ -23,15 +24,17 @@ public class SQLQuery {
 		Integer i = 0;
 		List<JSONObject> res = new ArrayList<JSONObject>();
 		
-		if (query_.last())
+		if (query_.isAfterLast())
 			return res;
-			
 		
 		while (i != nb && query_.next()) {
 			org.json.JSONObject jsonObject = new org.json.JSONObject();
-			for (int j = 0; j < nbColumn(); ++j) {
-					if (attributes == null || attributes.contains(query_.getMetaData().getColumnClassName(j)))
-						jsonObject.put(query_.getMetaData().getColumnName(j), query_.getObject(j).toString());
+			for (int j = 1; j <= nbColumn(); ++j) {
+					if (attributes == null || attributes.contains(query_.getMetaData().getColumnClassName(j))) {
+						String attributeName = query_.getMetaData().getColumnName(j);
+						Object value = query_.getObject(j); 
+						jsonObject.put(attributeName, value);
+					}
 					if (trackedAttribute_ != "" && trackedAttribute_.equals(query_.getMetaData().getColumnClassName(j))
 							&& lastUpdate.compareTo(query_.getObject(j).toString()) > 0)
 						lastUpdate = query_.getObject(j).toString();
