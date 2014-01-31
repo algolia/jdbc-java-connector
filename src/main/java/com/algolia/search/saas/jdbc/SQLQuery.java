@@ -35,7 +35,7 @@ public class SQLQuery {
 						Object value = query_.getObject(j); 
 						jsonObject.put(attributeName, value);
 					}
-					if (trackedAttribute_ != "" && trackedAttribute_.equals(query_.getMetaData().getColumnClassName(j))
+					if (!trackedAttribute_.equals("") && trackedAttribute_.equals(query_.getMetaData().getColumnClassName(j))
 							&& lastUpdate.compareTo(query_.getObject(j).toString()) > 0)
 						lastUpdate = query_.getObject(j).toString();
 				++i;
@@ -58,6 +58,6 @@ public class SQLQuery {
 	}
 	
 	public String lastUpdate;
-	private ResultSet query_;
+	private final ResultSet query_;
 	private String trackedAttribute_;
 }

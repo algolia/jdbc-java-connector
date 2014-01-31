@@ -18,26 +18,7 @@ public abstract class Worker {
     public Worker(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException {
         this.cli = cli;
 
-        // Algolia connection
-        final String target = cli.getOptionValue("target");
-        if (target == null) {
-            throw new ParseException("Missing --target option");
-        }
-        String[] APPInfo = target.split(":");
-        if (APPInfo.length != 3) {
-            throw new org.apache.commons.cli.ParseException("Invalid target: " + target);
-        }
-        this.client = new APIClient(APPInfo[0], APPInfo[1]);
-        this.index = this.client.initIndex(APPInfo[2]);
-        
-        // JDBC connection
-        final String source = cli.getOptionValue("source");
-        if (source == null) {
-            throw new ParseException("Missing --source option");
-        }
-        this.database = DriverManager.getConnection(source, cli.getOptionValue("username"), cli.getOptionValue("password"));
-
-        // Load configuration
+     // Load configuration
         String configuration = cli.getOptionValue("configuration", null);
         if (configuration != null) {
             JSONParser parser = new JSONParser();
@@ -49,6 +30,32 @@ public abstract class Worker {
         } else {
             this.configuration = null;
         }
+        
+        final String confTarget = this.configuration != null && this.configuration.containsKey("target") ? this.configuration.get("target").toString() : null;
+        final String confSource = this.configuration != null && this.configuration.containsKey("source") ? this.configuration.get("source").toString() : null;
+        final String confUsername = this.configuration != null && this.configuration.containsKey("username") ? this.configuration.get("username").toString() : null;
+        final String confPassword = this.configuration != null && this.configuration.containsKey("password") ? this.configuration.get("password").toString() : null;
+        
+        // Algolia connection
+        final String target = cli.getOptionValue("target", confTarget);
+        if (target == null) {
+            throw new ParseException("Missing --target option");
+        }
+        String[] APPInfo = target.split(":");
+        if (APPInfo.length != 3) {
+            throw new org.apache.commons.cli.ParseException("Invalid target: " + target);
+        }
+        this.client = new APIClient(APPInfo[0], APPInfo[1]);
+        this.index = this.client.initIndex(APPInfo[2]);
+        
+        // JDBC connection
+        final String source = cli.getOptionValue("source", confSource);
+        if (source == null) {
+            throw new ParseException("Missing --source option");
+        }
+        this.database = DriverManager.getConnection(source, cli.getOptionValue("username", confUsername), cli.getOptionValue("password", confPassword));
+
+        
     }
     
     public void close() throws SQLException {

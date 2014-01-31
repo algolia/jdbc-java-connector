@@ -43,6 +43,9 @@ public class Connector {
         // Update configuration
         options.addOption(null, "updatedAtField", true, "Field name used to find updated rows (default: updated_at)");
         options.getOption("updatedAtField").setArgName("field");
+        
+        options.addOption(null, "uniqueIDField", true, "Field name used to identify rows (default: id)");
+        options.getOption("uniqueIDField").setArgName("id");
 
         options.addOption("r", "refresh", true, "The refresh interval, in seconds (default: 10)");
         options.getOption("refresh").setArgName("rateInMS");
