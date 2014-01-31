@@ -2,12 +2,12 @@ package com.algolia.search.saas.jdbc;
 
 import java.sql.SQLException;
 
-import org.apache.commons.cli.CommandLine;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 
 public class Updater extends Worker {
-    public Updater(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
-        super(cli);
+    public Updater(JSONObject configuration) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
+        super(configuration);
         this.currentTime = 0;
     }
     

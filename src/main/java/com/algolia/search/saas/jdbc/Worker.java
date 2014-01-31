@@ -1,50 +1,24 @@
 package com.algolia.search.saas.jdbc;
 
-import java.io.FileReader;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import com.algolia.search.saas.APIClient;
 import com.algolia.search.saas.Index;
 
 public abstract class Worker {
-    protected final CommandLine cli;
+    public Worker(JSONObject configuration) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
+        this.configuration = configuration;
 
-    public Worker(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
-        this.cli = cli;
-
-     // Load configuration
-        String configuration = cli.getOptionValue("configuration", null);
-        if (configuration != null) {
-            JSONParser parser = new JSONParser();
-            try {
-                this.configuration = (JSONObject) parser.parse(new FileReader(configuration));
-            } catch (Exception e) {
-                throw new org.apache.commons.cli.ParseException("Failed to parse configuration file:" + e.getMessage());
-            }
-        } else {
-            this.configuration = null;
-        }
-        
-        final String confTarget = this.configuration != null && this.configuration.containsKey("target") ? this.configuration.get("target").toString() : null;
-        final String confSource = this.configuration != null && this.configuration.containsKey("source") ? this.configuration.get("source").toString() : null;
-        final String confUsername = this.configuration != null && this.configuration.containsKey("username") ? this.configuration.get("username").toString() : null;
-        final String confPassword = this.configuration != null && this.configuration.containsKey("password") ? this.configuration.get("password").toString() : null;
-        final List<String> confAttributes = this.configuration != null && this.configuration.containsKey("attributes") ? Arrays.asList(((JSONArray)this.configuration.get("attributes")).join(",").split(",")) : null;
-        
         // Algolia connection
-        final String target = cli.getOptionValue("target", confTarget);
+        final String target = (String) configuration.get(Connector.CONF_TARGET);
         if (target == null) {
-            throw new ParseException("Missing --target option");
+            throw new ParseException("Missing '" + Connector.CONF_TARGET + "' option");
         }
         String[] APPInfo = target.split(":");
         if (APPInfo.length != 3) {
@@ -54,13 +28,14 @@ public abstract class Worker {
         this.index = this.client.initIndex(APPInfo[2]);
         
         // JDBC connection
-        final String source = cli.getOptionValue("source", confSource);
+        final String source = (String) configuration.get(Connector.CONF_SOURCE);
         if (source == null) {
-            throw new ParseException("Missing --source option");
+            throw new ParseException("Missing '" + Connector.CONF_SOURCE + "' option");
         }
-        this.database = DriverManager.getConnection(source, cli.getOptionValue("username", confUsername), cli.getOptionValue("password", confPassword));
+        this.database = DriverManager.getConnection(source, (String) configuration.get(Connector.CONF_USERNAME), (String) configuration.get(Connector.CONF_PASSWORD));
 
-        this.attributes = cli.getOptionValues("attributes") != null ? Arrays.asList(cli.getOptionValues("attributes")) : confAttributes;
+        // Other 
+        this.attributes = (List<String>) configuration.get(Connector.CONF_ATTRIBUTES);
     }
     
     public void close() throws SQLException {
