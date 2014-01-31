@@ -12,16 +12,16 @@ Setup:
 Usage:
 ------
 
-	- target: target to algolia "APPID:APPKEY:Index"
-	- output: path of file used to keep the last modification
-	- config: path of configuration file
-	- host: url jdbc
-	- mode: dump or update
-	- username: username of the db
-	- password: password of the db
-	- query: sql query to fetch data
-	- attribute: attribute used to update
-	- time: time between to refresh
+	- target: target to algolia "APPID:APPKEY:Index" (default: "")
+	- output: path of file used to keep the last modification (default: "date.txt")
+	- config: path of configuration file (default: "")
+	- host: url jdbc (default: "")
+	- mode: dump or update (default: "dump")
+	- username: username of the db (default: "root")
+	- password: password of the db (default: "")
+	- query: sql query to fetch data (default: "")
+	- attribute: attribute used to update (default: "updated_at")
+	- time: time between to refresh in second (default: 1)
 
 Update mode:
 ------------

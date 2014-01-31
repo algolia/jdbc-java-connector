@@ -25,7 +25,7 @@ public class Connector {
 		}
 		settings.printArgs();
 		Worker worker = null;
-		if (settings.mode.equals("--dump"))
+		if (settings.mode.equals("dump"))
 			worker = new Dumper(settings);
 		else
 			worker = new Updater(settings);
