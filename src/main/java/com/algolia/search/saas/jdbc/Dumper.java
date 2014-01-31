@@ -32,51 +32,7 @@ public class Dumper extends Worker {
             while (rs.next()) {
                 JSONObject obj = new JSONObject();
                 for (int i = 1; i < columns + 1; i++) {
-                    String col = rsmd.getColumnName(i);
-                    switch (rsmd.getColumnType(i)) {
-                    case java.sql.Types.ARRAY:
-                        obj.put(col, rs.getArray(col));
-                        break;
-                    case java.sql.Types.BIGINT:
-                        obj.put(col, rs.getInt(col));
-                        break;
-                    case java.sql.Types.BOOLEAN:
-                        obj.put(col, rs.getBoolean(col));
-                        break;
-                    case java.sql.Types.BLOB:
-                        obj.put(col, rs.getBlob(col));
-                        break;
-                    case java.sql.Types.DOUBLE:
-                        obj.put(col, rs.getDouble(col));
-                        break;
-                    case java.sql.Types.FLOAT:
-                        obj.put(col, rs.getFloat(col));
-                        break;
-                    case java.sql.Types.INTEGER:
-                        obj.put(col, rs.getInt(col));
-                        break;
-                    case java.sql.Types.NVARCHAR:
-                        obj.put(col, rs.getNString(col));
-                        break;
-                    case java.sql.Types.VARCHAR:
-                        obj.put(col, rs.getString(col));
-                        break;
-                    case java.sql.Types.TINYINT:
-                        obj.put(col, rs.getInt(col));
-                        break;
-                    case java.sql.Types.SMALLINT:
-                        obj.put(col, rs.getInt(col));
-                        break;
-                    case java.sql.Types.DATE:
-                        obj.put(col, rs.getDate(col));
-                        break;
-                    case java.sql.Types.TIMESTAMP:
-                        obj.put(col, rs.getTimestamp(col));
-                        break;
-                    default:
-                        obj.put(col, rs.getObject(col));
-                        break;
-                    }
+                    obj.put(rsmd.getColumnName(i), rs.getObject(i));
                 }
                 System.out.println(obj);
             }
