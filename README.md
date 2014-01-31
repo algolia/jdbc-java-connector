@@ -5,40 +5,46 @@ JDBC Java Connector
 Setup:
 ------
 
-	sh$> mvn install
-	sh$> mvn package
-	sh$> mvn exec:java -Dexec.mainClass="com.algolia.search.saas.jdbc.Connector"
+```shell
+sh$> mvn install
+sh$> mvn package
+sh$> mvn exec:java -Dexec.mainClass="com.algolia.search.saas.jdbc.Connector" -Dexec.args="--dump --query 'SELECT '*' FROM projects' --target YourApplicationId:YourApiKey:YourIndex --source jdbc:mysql://localhost/YourDB --username YourUser --password YourPassword"
+```
 
 Usage:
 ------
 
-	- target: target to algolia "APPID:APPKEY:Index" (default: "")
-	- output: path of file used to keep the last modification (default: "date.txt")
-	- config: path of configuration file (default: "")
-	- host: url jdbc (default: "")
-	- mode: dump or update (default: "dump")
-	- username: username of the db (default: "root")
-	- password: password of the db (default: "")
-	- query: sql query to fetch data (default: "")
-	- attribute: attribute used to update (default: "updated_at")
-	- time: time between to refresh in second (default: 1)
+```
+usage: jdbc-java-connector
+ -c,--configuration <path/to/config.json>   Configuration file.
+ -d,--dump                                  Perform a dump
+ -h,--help                                  Print this help.
+    --password <arg>                        DB password
+ -q,--query <SELECT * FROM table>           SQL query used to fetched all rows
+ -r,--refresh <rateInMS>                    The refresh interval, in seconds
+ -s,--source <jdbc:DRIVER://HOST/DB>        JDBC connection string
+ -t,--target <APPID:APPKEY:Index>           Algolia credentials and index
+ -u,--update                                Perform an update
+    --updatedAtField <field>                Field name used to find updated rows.
+    --username <arg>                        DB username
+```
 
 Update mode:
 ------------
 
 In update mode you can use the last value of the tracked attribute like this:
 
-		SELECT * FROM table WHERE _$ < UPDATED_AT
+	SELECT * FROM table WHERE _$ < UPDATED_AT
 
 Configuration File:
 -------------------
 
-It's a json.
-
-	{
-		"attributes":["attr1", "attr2", ...],
-		"track": "updated_at"
-	}
+```json
+{
+	"attributes":["attr1", "attr2", ...],
+	"track": "updated_at"
+}
+```
 
 
                                                                                 

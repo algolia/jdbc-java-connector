@@ -1,50 +1,31 @@
 package com.algolia.search.saas.jdbc;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import org.json.simple.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import com.algolia.search.saas.APIClient;
-import com.algolia.search.saas.AlgoliaException;
-import com.algolia.search.saas.Index;
-
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 
 public class Dumper extends Worker {
 
-	public Dumper(Settings settings) {
-		settings_ = settings;
-		dataBase_ = null;
-		client_ = null;
-		index_ = null;
-	}
-	
-	public boolean connect() throws SQLException {
-		String[] APPInfo = settings_.target.split(":");
-		if (APPInfo.length != 3)
-			return false;
-		client_  = new APIClient(APPInfo[0], APPInfo[1]);
-		index_ = client_.initIndex(APPInfo[2]);
-		
-		dataBase_ = new Connector(settings_.host, settings_.username, settings_.password);	
-		return dataBase_.connect();
-	}
-	
-	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException {
-		List<JSONObject> json = null;
-		JSONArray attributes = null;
-		if (configuration_ != null && configuration_.get("attributes") != null)
-			attributes = (JSONArray)configuration_.get("attributes");
-		SQLQuery query = dataBase_.listTableContent(settings_.query);
-		while (!(json = query.toJson(1000, attributes)).isEmpty()) {
-			index_.addObjects(json);
-		}
-		return true;
-	}
-	
-	private APIClient client_;
-	private Index index_;
-	private Connector dataBase_;
-	private Settings settings_;
+    public Dumper(CommandLine cli) throws SQLException, ParseException {
+        super(cli);
+    }
+
+    @Override
+    public void run() throws ParseException, SQLException {
+        final String query = cli.getOptionValue("query");
+        assert(query != null);
+
+        java.sql.PreparedStatement stmt = database.prepareStatement(query);
+        ResultSet req = stmt.executeQuery();
+        int columns = req.getMetaData().getColumnCount();
+        while (req.next()) {
+            for (int i = 0; i < columns; ++i) {
+                System.out.println(req.getString(i));
+            }
+        }
+        req.close();
+    }
+
 }

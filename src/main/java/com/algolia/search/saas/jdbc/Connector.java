@@ -1,92 +1,101 @@
 package com.algolia.search.saas.jdbc;
 
-import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Vector;
-
-import org.json.JSONException;
-import org.json.simple.parser.ParseException;
-
-import com.algolia.search.saas.AlgoliaException;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class Connector {
 
-	public static void main(String[] args) throws SQLException,
-			AlgoliaException, JSONException, IOException, ParseException, NumberFormatException, InterruptedException {
-		boolean running = false; //TODO DEV
-		
-		Settings settings = new Settings();
-		settings.parse(args);
-		if (!settings.checkArgs()) {
-			settings.printArgs();
-			return;
-		}
-		settings.printArgs();
-		Worker worker = null;
-		if (settings.mode.equals("dump"))
-			worker = new Dumper(settings);
-		else
-			worker = new Updater(settings);
+    private static final Options options = new Options();
+    static {
+        // Source
+        options.addOption("s", "source", true, "JDBC connection string");
+        options.getOption("source").setRequired(true);
+        options.getOption("source").setArgName("jdbc:DRIVER://HOST/DB");
 
-		if (!worker.connect()) {
-			System.err.println("Unable to connect");
-			return;
-		}
-		worker.parseConfig(settings.config);
-		do {
-			if (!worker.fetchDataBase()) {
-				System.err.println("Error during dumping.");
-				return;
-			}
-			Thread.sleep(1000 * Integer.parseInt(settings.time));
-		} while (running);
-		
-	}
+        options.addOption(null, "username", true, "DB username");
 
-	public Connector(String url, String username, String password) {
-		url_ = url;
-		username_ = username;
-		password_ = password;
-		database_ = null;
-	}
+        options.addOption(null, "password", true, "DB password");
+        
+        // Destination
+        options.addOption("t", "target", true, "Algolia credentials and index");
+        options.getOption("target").setRequired(true);
+        options.getOption("target").setArgName("APPID:APPKEY:Index");
 
-	public boolean connect() throws SQLException {
-		database_ = DriverManager.getConnection(url_, username_, password_);
-		return true;
-	}
+        // Configuration
+        options.addOption("c", "configuration", true, "Configuration file.");
+        options.getOption("configuration").setArgName("path/to/config.json");
 
-	public Boolean isConnected() {
-		try {
-			return database_ != null && !database_.isClosed();
-		} catch (SQLException e) {
-			return false;
-		}
-	}
+        // Mode
+        options.addOption("d", "dump", false, "Perform a dump");
+        options.addOption("u", "update", false, "Perform an update");
 
-	public boolean close() throws SQLException {
-		database_.close();
-		return true;
-	}
+        // Query
+        options.addOption("q", "query", true, "SQL query used to fetched all rows");
+        options.getOption("query").setRequired(true);
+        options.getOption("query").setArgName("SELECT * FROM table");
 
-	public SQLQuery listTableContent(String sql) throws SQLException {
-		return new SQLQuery(database_.prepareStatement(sql).executeQuery());
-	}
+        // Update configuration
+        options.addOption(null, "updatedAtField", true, "Field name used to find updated rows (default: updated_at)");
+        options.getOption("updatedAtField").setArgName("field");
 
-	public Vector<String> listTableName() throws SQLException {
-		Vector<String> tablesName = new Vector<String>();
+        options.addOption("r", "refresh", true, "The refresh interval, in seconds (default: 10)");
+        options.getOption("refresh").setArgName("rateInMS");
 
-		ResultSet req;
-		req = database_.getMetaData().getTables(null, null, "%", null);
-		while (req.next()) {
-			tablesName.add(req.getString(3));
-		}
-		return tablesName;
-	}
+        // Misc
+        options.addOption("h", "help", false, "Print this help.");
+    }
 
-	private java.sql.Connection database_;
-	private String username_;
-	private String password_;
-	private String url_;
+    private static void usage(int exitCode) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(160);
+        formatter.printHelp("jdbc-java-connector", options);
+        System.exit(exitCode);
+    }
+
+    public static void main(String[] args) {
+        CommandLineParser p = new BasicParser();
+        CommandLine cli;
+
+        try {
+            cli = p.parse(options, args);
+        } catch (ParseException e) {
+            cli = null; // avoid non-initialized warning
+            System.err.println(e.getMessage());
+            usage(1);
+        }
+
+        if (cli.hasOption("help")) {
+            usage(1);
+        }
+
+        try {
+            Worker worker;
+            if (cli.hasOption("dump")) {
+                worker = new Dumper(cli);
+            } else if (cli.hasOption("update")) {
+                worker = new Updater(cli);
+            } else {
+                throw new ParseException("Either --dump or --update should be specified");
+            }
+            try {
+                // do {
+                // if (!worker.fetchDataBase()) {
+                // System.err.println("Error during dumping.");
+                // return;
+                // }
+                // Thread.sleep(1000 * Integer.parseInt(settings.time));
+                // } while (running);
+                worker.run();
+            } finally {
+                worker.close();
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            usage(2);
+        }
+    }
 }
