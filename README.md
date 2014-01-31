@@ -5,9 +5,9 @@ JDBC Java Connector
 Setup:
 ------
 
-		sh$> mvn install
-		sh$> mvn package
-		sh$> java -cp target/SQLConnector-1.0-SNAPSHOT.jar SQLConnector.App
+	sh$> mvn install
+	sh$> mvn package
+	sh$> mvn exec:java -Dexec.mainClass="com.algolia.search.saas.jdbc.Connector"
 
 Usage:
 ------
@@ -21,7 +21,6 @@ Usage:
 	- query: sql query to fetch data
 	- attribute: attribute used to update
 	- time: time between to refresh
-
 
 
                                                                                 
@@ -44,35 +43,32 @@ Usage:
 			               IIIIIIIIIII                           IIIIIIIIIII                
 			             IIIIIIIIIIII                             IIIIIIIIIIII              
 			            IIIIIIIIIII                     IIIII       IIIIIIIIIII             
-			            IIIIIIIIII                      IIIIIIIMMMMMMIIIIIIIIIIMMMMMMMMMMMMM
-			           IIIIIIIIII                      IIIIIIIIIIMMMMMIIIIIIIIIIMMMMMMMMMMMM
-			           IIIIIIIII                       IIIIIIIIIIIMMMMMIIIIIIIIIMMMMMMMMMMMM
-			          IIIIIIIII                       IIIIIIIIIIIIIMMMMMIIIIIIIIIMMMMMMMMMMM
-			          IIIIIIII                        IIIIIIIIIIIIIMMMMMMIIIIIIIIMMMMMMMMMMM
-			         IIIIIIIII                       IIIIIIIIIIIMMMMMMMMMIIIIIIIIIMMMMMMMMMM
-			         IIIIIIIII                       IIIIIIIIMMMMMMMMMMMMIIIIIIIIIMMMMMMMMMM
-			         IIIIIIII                       IIIIII MMMMMMMMMMMMMMMIIIIIIIIMMMMMMMMMM
-			         IIIIIIII                       III    MMMMMMMMMMMMMMMIIIIIIIIMMMMMMMMMM
-			         IIIIIIII                       I      MMMMMMMMMMMMMMMIIIIIIIIMMMMMMMMMM
-			         IIIIIIII                              MMMMMMMMMMMMMMMIIIIIIIIMMMMMMMMMM
-			         IIIIIIIII                             MMMMMMMMMMMMMMIIIIIIIIIMMMMMMMMMM
-			         IIIIIIIII                             MMMMMMMMMMMMMMIIIIIIIIIMMMMMMMMMM
-			          IIIIIIII                             MMMMMMMMMMMMMMIIIIIIIIMMMMMMMMMMM
-			          IIIIIIIII                            MMMMMMMMMMMMMIIIIIIIIIMMMMMMMMMMM
-			           IIIIIIIII                           MMMMMMMMMMMMIIIIIIIIIMMMMMMMMMMMM
-			           IIIIIIIIII                          MMMMMMMMMMMIIIIIIIIIIMMMMMMMMMMMM
-			            IIIIIIIIII                         MMMMMMMMMMIIIIIIIIIIMMMMMMMMMMMMM
-			             IIIIIIIIII                        MMMMMMMMMIIIIIIIIIIMMMMMMMMMMMMMM
-			              IIIIIIIIIII                      MMMMMMMIIIIIIIIIIIMMMMMMMMMMMMMMM
-			               IIIIIIIIIIII                    MMMMMIIIIIIIIIIIIMMMMMMMMMMMMMMMM
-			                IIIIIIIIIIIII                  MMMIIIIIIIIIIIIIMMMMMMMMMMMMMMMMM
-			                 IIIIIIIIIIIIIIII             IIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMM
-			                   IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMM
-			                     IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMM
-			                       IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMMMM
-			                          IIIIIIIIIIIIIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMMMMMMM
-			                              IIIIIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-			                                               MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-			                                               MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-			                                               MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-			                                                                 GlassGiant.com
+			            IIIIIIIIII                      IIIIIII      IIIIIIIIII             
+			           IIIIIIIIII                      IIIIIIIIII     IIIIIIIIII            
+			           IIIIIIIII                       IIIIIIIIIII     IIIIIIIII            
+			          IIIIIIIII                       IIIIIIIIIIIII     IIIIIIIII           
+			          IIIIIIII                        IIIIIIIIIIIII      IIIIIIII           
+			         IIIIIIIII                       IIIIIIIIIII         IIIIIIIII          
+			         IIIIIIIII                       IIIIIIII            IIIIIIIII          
+			         IIIIIIII                       IIIIII                IIIIIIII          
+			         IIIIIIII                       III                   IIIIIIII          
+			         IIIIIIII                       I                     IIIIIIII          
+			         IIIIIIII                                             IIIIIIII          
+			         IIIIIIIII                                           IIIIIIIII          
+			         IIIIIIIII                                           IIIIIIIII          
+			          IIIIIIII                                           IIIIIIII           
+			          IIIIIIIII                                         IIIIIIIII           
+			           IIIIIIIII                                       IIIIIIIII            
+			           IIIIIIIIII                                     IIIIIIIIII            
+			            IIIIIIIIII                                   IIIIIIIIII             
+			             IIIIIIIIII                                 IIIIIIIIII              
+			              IIIIIIIIIII                             IIIIIIIIIII               
+			               IIIIIIIIIIII                         IIIIIIIIIIII                
+			                IIIIIIIIIIIII                     IIIIIIIIIIIII                 
+			                 IIIIIIIIIIIIIIII             IIIIIIIIIIIIIIII                  
+			                   IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                    
+			                     IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                      
+			                       IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                        
+			                          IIIIIIIIIIIIIIIIIIIIIIIIIII                           
+			                              IIIIIIIIIIIIIIIIIII
+

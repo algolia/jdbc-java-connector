@@ -5,9 +5,34 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
 
-
-
 public class Connector {
+    
+    public static void main( String[] args )
+    {
+        Settings settings = new Settings();
+        settings.parse(args);
+        if (!settings.checkArgs())
+        {
+                settings.printArgs();
+                return;
+        }
+        Worker worker = null;
+        if (settings.mode.equals("--dump"))
+            worker = new Dumper(settings);
+        else
+            worker = new Updater(settings);
+        
+        if (!worker.connect())
+        {
+            System.err.println("Unable to connect");
+            return;
+        }
+        if (worker.fetchDataBase() != 0)
+        {
+            System.err.println("Error during dumping.");
+            return;
+        }
+    }
 	
 	public Connector(String url, String username, String password)
 	{
