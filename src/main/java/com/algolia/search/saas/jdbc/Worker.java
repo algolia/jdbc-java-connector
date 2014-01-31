@@ -17,8 +17,7 @@ public abstract class Worker {
 	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException {
 		return false;
 	}
-public boolean parseConfig(String fileName) throws IOException, ParseException
-	{
+	public boolean parseConfig(String fileName) throws IOException, ParseException {
 		JSONParser parser = new JSONParser();
 		
 		try {

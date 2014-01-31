@@ -3,8 +3,7 @@ package com.algolia.search.saas.jdbc;
 
 public class Settings {
 
-	public Settings()
-	{
+	public Settings() {
 		output = "";
 		target = "";
 		username = "";
@@ -16,84 +15,56 @@ public class Settings {
 		mode = "--dump";
 	}
 	
-	public void parse(String[] args)
-	{
-		for (int i  = 0; i < args.length; ++i)
-		{
+	public void parse(String[] args) {
+		for (int i  = 0; i < args.length; ++i) {
 			String arg = args[i];
-			if (arg.startsWith("-"))
-			{
-				if (arg.equals("--dump"))
-				{
+			if (arg.startsWith("-")) {
+				if (arg.equals("--dump")) {
 					System.out.println("Dump Mysql dataStruct to Algolia");
 					mode = arg;
-				}
-				else if (arg.equals("--update"))
-				{
+				} else if (arg.equals("--update")) {
 					System.out.println("Update Mysql dataStruct to Algolia");
 					mode = arg;
-				}
-				else if (arg.equals("-t") || arg.equals("--target"))
-				{
+				} else if (arg.equals("-t") || arg.equals("--target")) {
 					target = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-u") || arg.equals("--username"))
-				{
+				} else if (arg.equals("-u") || arg.equals("--username")) {
 					username = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-p") || arg.equals("--password"))
-				{
+				} else if (arg.equals("-p") || arg.equals("--password")) {
 					password  = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-h") || arg.equals("--host"))
-				{
+				} else if (arg.equals("-h") || arg.equals("--host")) {
 					host = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-q") || arg.equals("--query"))
-				{
+				} else if (arg.equals("-q") || arg.equals("--query")) {
 					query = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-o") || arg.equals("--output"))
-				{
+				} else if (arg.equals("-o") || arg.equals("--output")) {
 					output = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-a") || arg.equals("--attribute"))
-				{
+				} else if (arg.equals("-a") || arg.equals("--attribute")) {
 					attribute = args[i+1];
 					++i;
-				}
-				else if (arg.equals("-t") || arg.equals("--time"))
-				{
+				} else if (arg.equals("-t") || arg.equals("--time")) {
 					time = args[i+1];
 					++i;
-				}
-				else
-				{
+				} else {
 					System.err.println("Not yet implemented feature : " + arg);
 					System.exit(1);
 				}
-			}
-			else
-			{
+			} else {
 				System.err.println("Error on : " + arg);
 				System.exit(1);	
 			}
 		}
 	}
 	
-	public boolean checkArgs()
-	{
+	public boolean checkArgs() {
 		return !host.isEmpty() && !target.isEmpty() && !username.isEmpty() && !query.isEmpty();
 	}
 	
-	public void printArgs()
-	{
+	public void printArgs() {
 		System.err.print("The mode : ");
 		System.err.println(mode);
 		

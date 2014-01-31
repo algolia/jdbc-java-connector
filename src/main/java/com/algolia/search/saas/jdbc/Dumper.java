@@ -2,8 +2,6 @@ package com.algolia.search.saas.jdbc;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Vector;
-
 import org.json.simple.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,14 +13,14 @@ import com.algolia.search.saas.Index;
 
 public class Dumper extends Worker {
 
-	public Dumper(Settings settings)
-	{
+	public Dumper(Settings settings) {
 		settings_ = settings;
 		dataBase_ = null;
+		client_ = null;
+		index_ = null;
 	}
 	
-	public boolean connect() throws SQLException
-	{
+	public boolean connect() throws SQLException {
 		String[] APPInfo = settings_.target.split(":");
 		if (APPInfo.length != 3)
 			return false;
@@ -33,17 +31,11 @@ public class Dumper extends Worker {
 		return dataBase_.connect();
 	}
 	
-	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException
-	{
-		Vector<String> tablesName = dataBase_.listTableName();
+	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException {
 		List<JSONObject> json = null;
-		
-		for (String tableName : tablesName)
-		{
-			SQLQuery query = dataBase_.listTableContent(settings_.query);
-			while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty()) {
-				index_.addObjects(json);
-			}
+		SQLQuery query = dataBase_.listTableContent(settings_.query);
+		while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty()) {
+			index_.addObjects(json);
 		}
 		return true;
 	}

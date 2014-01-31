@@ -17,14 +17,15 @@ import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.Index;
 
 public class Updater extends Worker {
-	public Updater(Settings settings)
-	{
+	public Updater(Settings settings) {
 		settings_ = settings;
 		dataBase_ = null;
+		client_ = null;
+		index_ = null;
+		currentTime_ = "";
 	}
 	
-	public boolean parseConfig(String fileName)
-	{
+	public boolean parseConfig(String fileName) {
 		JSONParser parser = new JSONParser();
 		
 		try {
@@ -39,8 +40,7 @@ public class Updater extends Worker {
 		return true;
 	}
 	
-	public boolean connect() throws SQLException
-	{
+	public boolean connect() throws SQLException {
 		String[] APPInfo = settings_.target.split(":");
 		if (APPInfo.length != 3)
 			return false;
@@ -51,14 +51,16 @@ public class Updater extends Worker {
 		return dataBase_.connect();
 	}
 	
-	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException
-	{
+	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException {
 		List<org.json.JSONObject> json = null;
-		
+		JSONArray attributes = null;
+		if (configuration_ != null && configuration_.get("attributes") != null)
+			attributes = (JSONArray)configuration_.get("attributes");
 		String sql = settings_.query.replaceAll("_\\$", currentTime_);
 		SQLQuery query = dataBase_.listTableContent(sql);
-		query.trackAttribute((String)configuration_.get("track"));
-		while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty()) {
+		if (configuration_ != null && configuration_.get("track") != null)
+			query.trackAttribute((String)configuration_.get("track"));
+		while (!(json = query.toJson(1000, attributes)).isEmpty()) {
 			index_.addObjects(json);
 		}
 		currentTime_ = query.lastUpdate;
