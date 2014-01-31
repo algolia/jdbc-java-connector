@@ -44,9 +44,15 @@ public class Connector {
         options.addOption(null, "updatedAtField", true, "Field name used to find updated rows (default: updated_at)");
         options.getOption("updatedAtField").setArgName("field");
         
+        // ID field
         options.addOption(null, "uniqueIDField", true, "Field name used to identify rows (default: id)");
         options.getOption("uniqueIDField").setArgName("id");
 
+        // Kept attributes
+        options.addOption(null, "attributes", true, "Attribute filter (default: None");
+        options.getOption("attributes").setValueSeparator(',');
+        options.getOption("attributes").setArgName("attributes");
+        
         options.addOption("r", "refresh", true, "The refresh interval, in seconds (default: 10)");
         options.getOption("refresh").setArgName("rateInMS");
 

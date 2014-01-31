@@ -3,9 +3,10 @@ package com.algolia.search.saas.jdbc;
 import java.sql.SQLException;
 
 import org.apache.commons.cli.CommandLine;
+import org.json.JSONException;
 
 public class Updater extends Worker {
-    public Updater(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException {
+    public Updater(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
         super(cli);
         this.currentTime = 0;
     }

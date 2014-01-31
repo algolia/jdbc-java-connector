@@ -3,9 +3,13 @@ package com.algolia.search.saas.jdbc;
 import java.io.FileReader;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -15,7 +19,7 @@ import com.algolia.search.saas.Index;
 public abstract class Worker {
     protected final CommandLine cli;
 
-    public Worker(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException {
+    public Worker(CommandLine cli) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
         this.cli = cli;
 
      // Load configuration
@@ -35,6 +39,7 @@ public abstract class Worker {
         final String confSource = this.configuration != null && this.configuration.containsKey("source") ? this.configuration.get("source").toString() : null;
         final String confUsername = this.configuration != null && this.configuration.containsKey("username") ? this.configuration.get("username").toString() : null;
         final String confPassword = this.configuration != null && this.configuration.containsKey("password") ? this.configuration.get("password").toString() : null;
+        final List<String> confAttributes = this.configuration != null && this.configuration.containsKey("attributes") ? Arrays.asList(((JSONArray)this.configuration.get("attributes")).join(",").split(",")) : null;
         
         // Algolia connection
         final String target = cli.getOptionValue("target", confTarget);
@@ -55,7 +60,7 @@ public abstract class Worker {
         }
         this.database = DriverManager.getConnection(source, cli.getOptionValue("username", confUsername), cli.getOptionValue("password", confPassword));
 
-        
+        this.attributes = cli.getOptionValues("attributes") != null ? Arrays.asList(cli.getOptionValues("attributes")) : confAttributes;
     }
     
     public void close() throws SQLException {
@@ -66,6 +71,7 @@ public abstract class Worker {
     
     public abstract void run() throws ParseException, SQLException;
 
+    protected final List<String> attributes;
     protected final JSONObject configuration;
     protected final APIClient client;
     protected final Index index;
