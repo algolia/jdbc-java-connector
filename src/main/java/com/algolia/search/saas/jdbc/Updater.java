@@ -5,10 +5,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import com.algolia.search.saas.APIClient;
 import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.Index;
@@ -36,7 +39,7 @@ public class Updater extends Worker {
 		return true;
 	}
 	
-	public boolean connect()
+	public boolean connect() throws SQLException
 	{
 		String[] APPInfo = settings_.target.split(":");
 		if (APPInfo.length != 3)
@@ -45,28 +48,21 @@ public class Updater extends Worker {
 		index_ = client_.initIndex(APPInfo[2]);
 		
 		dataBase_ = new Connector(settings_.host, settings_.username, settings_.password);	
-		return dataBase_.connect() == 0;
+		return dataBase_.connect();
 	}
 	
-	public Integer fetchDataBase()
+	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException
 	{
 		List<org.json.JSONObject> json = null;
 		
 		String sql = settings_.query.replaceAll("_\\$", currentTime_);
 		SQLQuery query = dataBase_.listTableContent(sql);
 		query.trackAttribute((String)configuration_.get("track"));
-		try {
-			while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty())
-			{
-				index_.addObjects(json);
-			}
-		} catch (SQLException e) {
-			return 1;
-		} catch (AlgoliaException e) {
-			return 1;
+		while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty()) {
+			index_.addObjects(json);
 		}
 		currentTime_ = query.lastUpdate;
-		return 0;
+		return true;
 	}
 	
 	private String currentTime_;

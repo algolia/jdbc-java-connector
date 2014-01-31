@@ -21,13 +21,13 @@ public class SQLQuery {
 		trackedAttribute_ = attr;
 	}
 	
-	public List<JSONObject> toJson(int nb, JSONArray attributes) throws SQLException
+	public List<JSONObject> toJson(int nb, JSONArray attributes) throws SQLException, JSONException
 	{
 		Integer i = 0;
 		List<JSONObject> res = new ArrayList<JSONObject>();
 		
 		if (query_.last())
-			return null;
+			return res;
 			
 		
 		while (i != nb && query_.next())
@@ -35,17 +35,11 @@ public class SQLQuery {
 			org.json.JSONObject jsonObject = new org.json.JSONObject();
 			for (int j = 0; j < nbColumn(); ++j)
 			{
-				try {
-					if (attributes.contains(query_.getMetaData().getColumnClassName(j)))
+					if (attributes == null || attributes.contains(query_.getMetaData().getColumnClassName(j)))
 						jsonObject.put(query_.getMetaData().getColumnName(j), query_.getObject(j).toString());
 					if (trackedAttribute_ != "" && trackedAttribute_.equals(query_.getMetaData().getColumnClassName(j))
 							&& lastUpdate.compareTo(query_.getObject(j).toString()) > 0)
 						lastUpdate = query_.getObject(j).toString();
-				} catch (SQLException e) {
-					System.err.println("Warning"); //TODO msg
-				} catch (JSONException e) {
-					System.err.println("Warning"); //TODO msg
-				}
 				++i;
 			}
 			res.add(jsonObject);
@@ -53,31 +47,19 @@ public class SQLQuery {
 		return res;
 	}
 	
-	public boolean next(int i)
+	public boolean next(int i) throws SQLException
 	{
-		try {
-			return query_.next();
-		} catch (SQLException e) {
-			return false;
-		}
+		return query_.next();
 	}
 	
-	public boolean prev(int i)
+	public boolean prev(int i) throws SQLException
 	{
-		try {
-			return query_.previous();
-		} catch (SQLException e) {
-			return false;
-		}
+		return query_.previous();
 	}
 	
-	public int nbColumn()
+	public int nbColumn() throws SQLException
 	{
-		try {
-			return query_.getMetaData().getColumnCount();
-		} catch (SQLException e) {
-			return -1;
-		}
+		return query_.getMetaData().getColumnCount();
 	}
 	
 	public String lastUpdate;

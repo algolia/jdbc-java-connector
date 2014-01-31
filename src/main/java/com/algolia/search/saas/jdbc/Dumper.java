@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.json.simple.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.algolia.search.saas.APIClient;
@@ -20,7 +21,7 @@ public class Dumper extends Worker {
 		dataBase_ = null;
 	}
 	
-	public boolean connect()
+	public boolean connect() throws SQLException
 	{
 		String[] APPInfo = settings_.target.split(":");
 		if (APPInfo.length != 3)
@@ -29,29 +30,22 @@ public class Dumper extends Worker {
 		index_ = client_.initIndex(APPInfo[2]);
 		
 		dataBase_ = new Connector(settings_.host, settings_.username, settings_.password);	
-		return dataBase_.connect() == 0;
+		return dataBase_.connect();
 	}
 	
-	public Integer fetchDataBase()
+	public boolean fetchDataBase() throws SQLException, AlgoliaException, JSONException
 	{
 		Vector<String> tablesName = dataBase_.listTableName();
 		List<JSONObject> json = null;
 		
 		for (String tableName : tablesName)
 		{
-			SQLQuery query = dataBase_.listTableContent(tableName);
-			try {
-				while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty())
-				{
-					index_.addObjects(json);
-				}
-			} catch (SQLException e) {
-				return 1;
-			} catch (AlgoliaException e) {
-				return 1;
+			SQLQuery query = dataBase_.listTableContent(settings_.query);
+			while (!(json = query.toJson(1000, (JSONArray)configuration_.get("attributes"))).isEmpty()) {
+				index_.addObjects(json);
 			}
 		}
-		return 0;
+		return true;
 	}
 	
 	private APIClient client_;

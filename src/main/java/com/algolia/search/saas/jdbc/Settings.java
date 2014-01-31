@@ -13,6 +13,7 @@ public class Settings {
 		query = "";
 		attribute = "";
 		time = "";
+		mode = "--dump";
 	}
 	
 	public void parse(String[] args)
@@ -47,7 +48,7 @@ public class Settings {
 					password  = args[i+1];
 					++i;
 				}
-				else if (arg.equals("-s") || arg.equals("--source"))
+				else if (arg.equals("-h") || arg.equals("--host"))
 				{
 					host = args[i+1];
 					++i;
@@ -88,12 +89,14 @@ public class Settings {
 	
 	public boolean checkArgs()
 	{
-		return output != "" && host != "" && target != "" && username != ""
-			&& password != "";
+		return !host.isEmpty() && !target.isEmpty() && !username.isEmpty() && !query.isEmpty();
 	}
 	
 	public void printArgs()
 	{
+		System.err.print("The mode : ");
+		System.err.println(mode);
+		
 		System.err.print("The host : ");
 		System.err.println(host);
 		
@@ -108,6 +111,12 @@ public class Settings {
 		
 		System.err.print("The database username : ");
 		System.err.println(username);
+		
+		System.err.print("The attribute : ");
+		System.err.println(attribute);
+		
+		System.err.print("The time : ");
+		System.err.println(time);
 	}
 	
 	public String mode;
