@@ -45,7 +45,7 @@ public class Dumper extends Worker {
                     try {
                     	if (rsmd.getColumnName(i).equals(idField)) {
                     		obj.put("objectID", rs.getObject(i));
-                    	} else if (this.attributes == null || this.attributes.contains(rsmd.getColumnName(i))) {
+                    	} else {
                     		obj.put(rsmd.getColumnName(i), rs.getObject(i));
                     	}
                     } catch (JSONException e) {

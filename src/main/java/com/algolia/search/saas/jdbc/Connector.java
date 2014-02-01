@@ -26,7 +26,6 @@ public class Connector {
     public static final String CONF_QUERY = "query";
     public static final String CONF_UPDATED_AT_FIELD = "updatedAtField";
     public static final String CONF_UNIQUE_ID_FIELD = "uniqueIDField";
-    public static final String CONF_ATTRIBUTES = "attributes";
     public static final String CONF_REFRESH = "refresh";
     public static final String CONF_HELP = "heko";
     public static final String CONF_BATCH_SIZE = "batchSize";
@@ -60,10 +59,6 @@ public class Connector {
         // ID field
         options.addOption(null, CONF_UNIQUE_ID_FIELD, true, "Field name used to identify rows (default: id)");
         options.getOption(CONF_UNIQUE_ID_FIELD).setArgName("id");
-
-        // Kept attributes
-        options.addOption(null, CONF_ATTRIBUTES, true, "Attribute filter (default: None");
-        options.getOption(CONF_ATTRIBUTES).setArgName("attributes");
         
         options.addOption("r", CONF_REFRESH, true, "The refresh interval, in seconds (default: 10)");
         options.getOption(CONF_REFRESH).setArgName("rateInMS");
@@ -109,11 +104,6 @@ public class Connector {
             String o = opt.getLongOpt();
             if (o.equals(CONF_HELP) || o.equals(CONF_DUMP) || o.equals(CONF_UPDATE)) {
                 continue;
-            } else if (o.equals(CONF_ATTRIBUTES)) {
-                // multi-valued attributes
-                if (cli.hasOption(o)) {
-                    configuration.put(o, Arrays.asList(cli.getOptionValue(o).split(",")));
-                }
             } else {
                 // single-valued attributes
                 if (cli.hasOption(o)) {

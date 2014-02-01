@@ -2,8 +2,6 @@ package com.algolia.search.saas.jdbc;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
-
 import org.apache.commons.cli.ParseException;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
@@ -34,9 +32,6 @@ public abstract class Worker {
             throw new ParseException("Missing '" + Connector.CONF_SOURCE + "' option");
         }
         this.database = DriverManager.getConnection(source, (String) configuration.get(Connector.CONF_USERNAME), (String) configuration.get(Connector.CONF_PASSWORD));
-
-        // Other 
-        this.attributes = (List<String>) configuration.get(Connector.CONF_ATTRIBUTES);
     }
     
     public void close() throws SQLException {
@@ -47,7 +42,6 @@ public abstract class Worker {
     
     public abstract void run() throws SQLException, AlgoliaException;
 
-    protected final List<String> attributes;
     protected final JSONObject configuration;
     protected final APIClient client;
     protected final Index index;
