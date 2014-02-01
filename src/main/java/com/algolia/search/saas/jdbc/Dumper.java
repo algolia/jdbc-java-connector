@@ -19,26 +19,25 @@ public class Dumper extends Worker {
         
         String batchSize = (String) this.configuration.get(Connector.CONF_BATCH_SIZE);
         this.batchSize = batchSize == null ? 1000 : Integer.parseInt(batchSize);
-    }
-
-    @Override
-    public void run() throws SQLException, AlgoliaException {
-        final String query = (String) configuration.get(Connector.CONF_QUERY);
+        this.query = (String) configuration.get(Connector.CONF_QUERY);
         assert (query != null);
-        final String idField = (String) configuration.get(Connector.CONF_UNIQUE_ID_FIELD);
+        this.idField = (String) configuration.get(Connector.CONF_UNIQUE_ID_FIELD);
         assert (idField != null);
-
-        java.sql.PreparedStatement stmt = database.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        this.stmt = database.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         stmt.setFetchSize(Integer.MIN_VALUE);
         if (stmt instanceof com.mysql.jdbc.Statement) {
             ((com.mysql.jdbc.Statement) stmt).enableStreamingResults();
         }
         //TODO Activate on the other jdbc
-        ResultSet rs = stmt.executeQuery();
+    }
+
+    @Override
+    public void run() throws SQLException, AlgoliaException, JSONException {   
+    	ResultSet rs = stmt.executeQuery();
         try {
             ResultSetMetaData rsmd = rs.getMetaData();
             int columns = rsmd.getColumnCount();
-            List<org.json.JSONObject> objects = new ArrayList<org.json.JSONObject>();
+            List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
             while (rs.next()) {
                 org.json.JSONObject obj = new org.json.JSONObject();
                 for (int i = 1; i < columns + 1; i++) {
@@ -52,19 +51,26 @@ public class Dumper extends Worker {
                         throw new Error(e);
                     }
                 }
-                objects.add(obj);
-                if (objects.size() >= batchSize) {
-                    this.index.addObjects(objects);
-                    objects.clear();
+                org.json.JSONObject action = new org.json.JSONObject();
+                action.put("action", "addObject");
+                action.put("body",obj);
+                actions.add(action);
+                if (actions.size() >= batchSize) {
+                	actions = addSetting(actions, "0"); //TODO
+                    //this.index.batch(actions); TODO
+                    actions.clear();
                 }
             }
-            if (!objects.isEmpty()) {
-                this.index.addObjects(objects);
+            if (!actions.isEmpty()) {
+                this.index.addObjects(actions);
             }
         } finally {
             rs.close();
         }
     }
 
+    private final java.sql.PreparedStatement stmt;
+    private final String query;
+    private final String idField;
     private final int batchSize;
 }

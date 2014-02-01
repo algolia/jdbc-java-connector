@@ -2,7 +2,6 @@ package com.algolia.search.saas.jdbc;
 
 import java.io.FileReader;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -10,6 +9,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -173,7 +173,11 @@ public class Connector {
             // }
             // Thread.sleep(1000 * Integer.parseInt(settings.time));
             // } while (running);
-            worker.run();
+            try {
+				worker.run();
+			} catch (JSONException e) {
+				System.err.println(e.getMessage());
+			}
         } finally {
             if (worker != null) {
                 worker.close();

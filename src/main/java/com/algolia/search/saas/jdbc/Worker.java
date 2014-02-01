@@ -2,7 +2,10 @@ package com.algolia.search.saas.jdbc;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.commons.cli.ParseException;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
 
@@ -40,7 +43,20 @@ public abstract class Worker {
         }
     }
     
-    public abstract void run() throws SQLException, AlgoliaException;
+    @SuppressWarnings("unchecked")
+	public List<org.json.JSONObject> addSetting(List<org.json.JSONObject> actions, String lastUpdate) throws JSONException {
+    	org.json.JSONObject action = new org.json.JSONObject();
+    	org.json.JSONObject userData = new org.json.JSONObject();
+    	userData.put("lastUpdatedAt", lastUpdate);
+    	action.put("userData", userData);
+    	action.put("action", "changeSettings");
+    	action.put("body", userData);
+    	actions.add(action);
+    	
+    	return actions;
+    }
+    
+    public abstract void run() throws SQLException, AlgoliaException, JSONException;
 
     protected final JSONObject configuration;
     protected final APIClient client;
