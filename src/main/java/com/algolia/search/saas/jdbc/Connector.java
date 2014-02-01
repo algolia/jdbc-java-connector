@@ -24,10 +24,12 @@ public class Connector {
     public static final String CONF_DUMP = "dump";
     public static final String CONF_UPDATE = "update";
     public static final String CONF_QUERY = "query";
+    public static final String CONF_QUERY_UPDATE = "queryUpdate";
     public static final String CONF_UPDATED_AT_FIELD = "updatedAtField";
     public static final String CONF_UNIQUE_ID_FIELD = "uniqueIDField";
     public static final String CONF_REFRESH = "refresh";
-    public static final String CONF_HELP = "heko";
+    public static final String CONF_REFRESH_DELETED = "refreshDeleted";
+    public static final String CONF_HELP = "help";
     public static final String CONF_BATCH_SIZE = "batchSize";
 
     private static final Options options = new Options();
@@ -56,12 +58,18 @@ public class Connector {
         options.addOption(null, CONF_UPDATED_AT_FIELD, true, "Field name used to find updated rows (default: updated_at)");
         options.getOption(CONF_UPDATED_AT_FIELD).setArgName("field");
         
+        options.addOption(null, CONF_QUERY_UPDATE, true, "SQL query used to fetched updated rows");
+        options.getOption(CONF_QUERY_UPDATE).setArgName("SELECT * FROM table WHERE _$ < updatedAt");
+        
         // ID field
         options.addOption(null, CONF_UNIQUE_ID_FIELD, true, "Field name used to identify rows (default: id)");
         options.getOption(CONF_UNIQUE_ID_FIELD).setArgName("id");
         
         options.addOption("r", CONF_REFRESH, true, "The refresh interval, in seconds (default: 10)");
         options.getOption(CONF_REFRESH).setArgName("rateInMS");
+        
+        options.addOption("r", CONF_REFRESH_DELETED, true, "The refresh interval to check deletion, in seconds (default: 10)");
+        options.getOption(CONF_REFRESH_DELETED).setArgName("rateInM");
 
         // Misc
         options.addOption("h", CONF_HELP, false, "Print this help.");
@@ -122,6 +130,21 @@ public class Connector {
             }
             if (!configuration.containsKey(CONF_TARGET)) {
                 throw new ParseException("Missing '" + CONF_TARGET + "' option.");
+            }
+            if (cli.hasOption(CONF_UPDATE)) {
+            	if (!configuration.containsKey(CONF_QUERY_UPDATE)) {
+            		throw new ParseException("Missing '" + CONF_QUERY_UPDATE + "' option.");
+            	}
+            	if (!configuration.containsKey(CONF_UPDATED_AT_FIELD)) {
+            		throw new ParseException("Missing '" + CONF_UPDATED_AT_FIELD + "' option.");
+            	}
+            	if (!configuration.containsKey(CONF_UNIQUE_ID_FIELD)) {
+            		throw new ParseException("Missing '" + CONF_UNIQUE_ID_FIELD + "' option.");
+            	}
+            }
+            if ((configuration.containsKey(CONF_REFRESH) || configuration.containsKey(CONF_REFRESH_DELETED))
+            		&& configuration.containsKey(CONF_UNIQUE_ID_FIELD)) {
+            	throw new ParseException("Missing '" + CONF_UNIQUE_ID_FIELD + "' option.");
             }
         } catch (ParseException e) {
             System.err.println(e.getMessage());
