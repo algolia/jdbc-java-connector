@@ -20,12 +20,8 @@ public class Deleter extends Worker {
 	public Deleter(JSONObject configuration) throws SQLException,
 			ParseException, JSONException {
 		super(configuration);
-		String batchSize = (String) this.configuration.get(Connector.CONF_BATCH_SIZE);
-        this.batchSize = batchSize == null ? 1000 : Integer.parseInt(batchSize);
         this.query = (String) configuration.get(Connector.CONF_QUERY);
         assert (query != null);
-        this.idField = (String) configuration.get(Connector.CONF_UNIQUE_ID_FIELD);
-        assert (idField != null);
         this.stmt = database.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         stmt.setFetchSize(Integer.MIN_VALUE);
         if (stmt instanceof com.mysql.jdbc.Statement) {
@@ -39,7 +35,7 @@ public class Deleter extends Worker {
 		int nbPages = 0;
 		int i = 0;
 		do {
-			org.json.JSONObject elements = null;//index.browse(i); TODO
+			org.json.JSONObject elements = index.browse(i);
 			nbPages = elements.getInt("nbPages");
 			JSONArray hits = elements.getJSONArray("hits");
 			for (int j = 0; j < elements.getInt("nbHits"); ++j) {
@@ -53,9 +49,9 @@ public class Deleter extends Worker {
             int columns = rsmd.getColumnCount();
             while (rs.next()) {
                 for (i = 1; i < columns + 1; i++) {
-                	if (rsmd.getColumnName(i).equals(idField)) {
-                		ids.remove(rs.getObject(i));
-                	}
+                    if (rsmd.getColumnName(i).equals(idField)) {
+						ids.remove(rs.getObject(i));
+					}
                 }
             }
             List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
@@ -68,7 +64,7 @@ public class Deleter extends Worker {
                 action.put("body",body);
                 actions.add(action);
                 if (actions.size() >= batchSize) {
-                    //this.index.batch(actions); TODO
+                    //this.index.batch(actions);
                     actions.clear();
                 }
             }
@@ -82,7 +78,4 @@ public class Deleter extends Worker {
 	
 	private final java.sql.PreparedStatement stmt;
     private final String query;
-    private final String idField;
-    private final int batchSize;
-
 }
