@@ -13,6 +13,8 @@ import org.apache.commons.cli.ParseException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import com.algolia.search.saas.AlgoliaException;
+
 public class Connector {
     
     public static final String CONF_SOURCE = "source";
@@ -27,6 +29,7 @@ public class Connector {
     public static final String CONF_ATTRIBUTES = "attributes";
     public static final String CONF_REFRESH = "refresh";
     public static final String CONF_HELP = "heko";
+    public static final String CONF_BATCH_SIZE = "batchSize";
 
     private static final Options options = new Options();
     static {
@@ -67,6 +70,7 @@ public class Connector {
 
         // Misc
         options.addOption("h", CONF_HELP, false, "Print this help.");
+        options.addOption(null, CONF_BATCH_SIZE, true, "Size of the batch. (default: 1000)");
     }
 
     private static void usage(int exitCode) {
@@ -77,7 +81,7 @@ public class Connector {
     }
 
     @SuppressWarnings("unchecked")
-    public static void main(String[] args) throws ParseException, SQLException {
+    public static void main(String[] args) throws ParseException, SQLException, AlgoliaException {
         CommandLine cli;
         JSONObject configuration = null;
 

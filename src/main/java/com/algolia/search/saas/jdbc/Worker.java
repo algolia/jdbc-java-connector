@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.simple.JSONObject;
 
 import com.algolia.search.saas.APIClient;
+import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.Index;
 
 public abstract class Worker {
@@ -44,7 +45,7 @@ public abstract class Worker {
         }
     }
     
-    public abstract void run() throws ParseException, SQLException;
+    public abstract void run() throws SQLException, AlgoliaException;
 
     protected final List<String> attributes;
     protected final JSONObject configuration;
