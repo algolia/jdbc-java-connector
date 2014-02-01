@@ -1,7 +1,10 @@
 package com.algolia.search.saas.jdbc;
 
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.sql.SQLException;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -17,6 +20,8 @@ import com.algolia.search.saas.AlgoliaException;
 
 public class Connector {
     
+    public static final Logger LOGGER = Logger.getLogger("connector");
+    
     public static final String CONF_SOURCE = "source";
     public static final String CONF_USERNAME = "username";
     public static final String CONF_PASSWORD = "password";
@@ -31,6 +36,7 @@ public class Connector {
     public static final String CONF_REFRESH_DELETED = "refreshDeleted";
     public static final String CONF_HELP = "help";
     public static final String CONF_BATCH_SIZE = "batchSize";
+    public static final String CONF_LOG = "log";
 
     private static final Options options = new Options();
     static {
@@ -74,6 +80,8 @@ public class Connector {
         // Misc
         options.addOption("h", CONF_HELP, false, "Print this help.");
         options.addOption(null, CONF_BATCH_SIZE, true, "Size of the batch. (default: 1000)");
+        options.addOption(null, CONF_LOG, true, "Path to logging configuration file.");
+        options.getOption(CONF_LOG).setArgName("path/to/logging.properties");
     }
 
     private static void usage(int exitCode) {
@@ -122,6 +130,14 @@ public class Connector {
         
         // check mandatory configuration keys
         try {
+            try {
+                String loggingConfiguration = (String) configuration.get("log");
+                if (loggingConfiguration != null) {
+                    LogManager.getLogManager().readConfiguration(new FileInputStream(loggingConfiguration));
+                }
+            } catch (Exception e) {
+                throw new ParseException("Cannot log to " + (String) configuration.get("log"));
+            }            
             if (!configuration.containsKey(CONF_QUERY)) {
                 throw new ParseException("Missing '" + CONF_QUERY + "' option.");
             }
@@ -150,6 +166,8 @@ public class Connector {
             System.err.println(e.getMessage());
             usage(1);
         }
+        
+        LOGGER.info("* Starting connector");
 
         Worker worker;
         try {
