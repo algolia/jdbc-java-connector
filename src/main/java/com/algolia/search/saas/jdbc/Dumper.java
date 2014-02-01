@@ -17,8 +17,9 @@ public class Dumper extends Worker {
     public Dumper(JSONObject configuration) throws SQLException, ParseException, JSONException {
         super(configuration);
         
-        String batchSize = (String) this.configuration.get(Connector.CONF_BATCH_SIZE);
-        this.batchSize = batchSize == null ? 1000 : Integer.parseInt(batchSize);
+        
+        Object batchSize = this.configuration.get(Connector.CONF_BATCH_SIZE);
+        this.batchSize = batchSize == null ? 1000 : (batchSize instanceof Integer || batchSize instanceof Long ? (Long) batchSize : Long.parseLong((String) batchSize));
     }
 
     @Override
@@ -66,5 +67,5 @@ public class Dumper extends Worker {
         }
     }
 
-    private final int batchSize;
+    private final long batchSize;
 }
