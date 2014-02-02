@@ -3,6 +3,7 @@ package com.algolia.search.saas.jdbc;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -90,9 +91,25 @@ public class Connector {
         formatter.printHelp("jdbc-java-connector [option]... [path/to/config.json]", options);
         System.exit(exitCode);
     }
+    
+    private static void tryUntil(Worker worker, long sleepTime) {
+    	while (true) {
+    			try {
+					worker.run();
+					return;
+				} catch (SQLException | AlgoliaException | JSONException e) {
+				    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+    			try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					continue;
+				}
+    	}
+    }
 
     @SuppressWarnings("unchecked")
-    public static void main(String[] args) throws ParseException, SQLException, AlgoliaException {
+    public static void main(String[] args) throws SQLException, ParseException {
         CommandLine cli = null;
         JSONObject configuration = null;
 
@@ -168,8 +185,7 @@ public class Connector {
         Worker deleteWorker = null;
         try {
             if (cli.hasOption(CONF_DUMP)) {
-            	Worker worker = new Dumper(configuration);
-                worker.run();
+            	tryUntil(new Dumper(configuration), 1000);
                 return;
             } else if (cli.hasOption(CONF_UPDATE)) {
                 updateWorker = new Updater(configuration);
@@ -187,13 +203,13 @@ public class Connector {
         	long elapsedLoop = 0;
             try {
             	if (!updateWorker.isInitialised())
-            		(new Dumper(configuration)).run();
+            		tryUntil(new Dumper(configuration), 1000); // Constructor can throw
             	do {
             		if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop) {
-            			deleteWorker.run();
+            			tryUntil(deleteWorker, 1000);
             			elapsedLoop = 0;
             		}
-            		updateWorker.run();
+            		tryUntil(updateWorker, 1000);
             		Thread.sleep(1000 * timeBetweenUpdate);
             		elapsedLoop += timeBetweenUpdate;
             	} while(timeBetweenUpdate != 0);
