@@ -12,7 +12,7 @@ public class Updater extends Worker {
     public Updater(JSONObject configuration) throws SQLException, org.apache.commons.cli.ParseException, JSONException {
         super(configuration);
         this.lastUpdatedAt = "0";
-        this.query = (String) configuration.get(Connector.CONF_QUERY);
+        this.query = (String) configuration.get(Connector.CONF_SELECT_QUERY);
         assert (query != null);
     }
     
@@ -31,8 +31,7 @@ public class Updater extends Worker {
         if (stmt instanceof com.mysql.jdbc.Statement) {
             ((com.mysql.jdbc.Statement) stmt).enableStreamingResults();
         }
-        //TODO Activate on the other jdbc
-    	
+        //TODO Activate on the other jdbc    	
     	
     	iterateOnQuery(stmt);
     }

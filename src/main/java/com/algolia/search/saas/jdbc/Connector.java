@@ -26,15 +26,16 @@ public class Connector {
     public static final String CONF_SOURCE = "source";
     public static final String CONF_USERNAME = "username";
     public static final String CONF_PASSWORD = "password";
-    public static final String CONF_TARGET = "target";
-    public static final String CONF_DUMP = "dump";
-    public static final String CONF_UPDATE = "update";
-    public static final String CONF_QUERY = "query";
-    public static final String CONF_QUERY_UPDATE = "queryUpdate";
+    public static final String CONF_APPLICATION_ID = "applicationId";
+    public static final String CONF_API_KEY = "apiKey";
+    public static final String CONF_INDEX = "index";
+    public static final String CONF_DUMP_ONLY = "dump";
+    public static final String CONF_SELECT_QUERY = "selectQuery";
+    public static final String CONF_UPDATE_QUERY = "updateQuery";
     public static final String CONF_UPDATED_AT_FIELD = "updatedAtField";
-    public static final String CONF_UNIQUE_ID_FIELD = "uniqueIDField";
-    public static final String CONF_REFRESH = "refresh";
-    public static final String CONF_REFRESH_DELETED = "refreshDeleted";
+    public static final String CONF_PRIMARY_FIELD = "primaryField";
+    public static final String CONF_REFRESH_RATE = "refreshRate";
+    public static final String CONF_DELETE_RATE = "deleteRate";
     public static final String CONF_HELP = "help";
     public static final String CONF_BATCH_SIZE = "batchSize";
     public static final String CONF_LOG = "log";
@@ -50,39 +51,51 @@ public class Connector {
         options.addOption(null, CONF_PASSWORD, true, "DB password");
         
         // Destination
-        options.addOption("t", CONF_TARGET, true, "Algolia credentials and index");
-        options.getOption(CONF_TARGET).setArgName("APPID:APPKEY:Index");
+        options.addOption(null, CONF_APPLICATION_ID, true, "Algolia APPLICATION_ID");
+        options.getOption(CONF_APPLICATION_ID).setArgName("YourApplicationID");
+        options.addOption(null, CONF_API_KEY, true, "Algolia APPI_KEY");
+        options.getOption(CONF_API_KEY).setArgName("YourApiKey");
+        options.addOption(null, CONF_INDEX, true, "Destination index");
+        options.getOption(CONF_INDEX).setArgName("YourIndex");
 
         // Mode
-        options.addOption("d", CONF_DUMP, false, "Perform a dump");
-        options.addOption("u", CONF_UPDATE, false, "Perform an update");
+        options.addOption("d", CONF_DUMP_ONLY, false, "Perform a dump only");
 
         // Query
-        options.addOption("q", CONF_QUERY, true, "SQL query used to fetched all rows");
-        options.getOption(CONF_QUERY).setArgName("SELECT * FROM table");
+        options.addOption("q", CONF_SELECT_QUERY, true, "SQL query used to fetched all rows");
+        options.getOption(CONF_SELECT_QUERY).setArgName("SELECT * FROM table");
+        options.addOption("u", CONF_UPDATE_QUERY, true, "SQL query used to fetched updated rows. Use _$ as placeholder");
+        options.getOption(CONF_UPDATE_QUERY).setArgName("SELECT * FROM table WHERE _$ > updatedAt");
 
         // Update configuration
         options.addOption(null, CONF_UPDATED_AT_FIELD, true, "Field name used to find updated rows (default: updated_at)");
         options.getOption(CONF_UPDATED_AT_FIELD).setArgName("field");
         
-        options.addOption(null, CONF_QUERY_UPDATE, true, "SQL query used to fetched updated rows");
-        options.getOption(CONF_QUERY_UPDATE).setArgName("SELECT * FROM table WHERE _$ < updatedAt");
         
         // ID field
-        options.addOption(null, CONF_UNIQUE_ID_FIELD, true, "Field name used to identify rows (default: id)");
-        options.getOption(CONF_UNIQUE_ID_FIELD).setArgName("id");
+        options.addOption(null, CONF_PRIMARY_FIELD, true, "Field name used to identify rows (default: id)");
+        options.getOption(CONF_PRIMARY_FIELD).setArgName("id");
         
-        options.addOption("r", CONF_REFRESH, true, "The refresh interval, in seconds (default: 10)");
-        options.getOption(CONF_REFRESH).setArgName("rateInMS");
-        
-        options.addOption("r", CONF_REFRESH_DELETED, true, "The refresh interval to check deletion, in seconds (default: 10)");
-        options.getOption(CONF_REFRESH_DELETED).setArgName("rateInM");
+        options.addOption("r", CONF_REFRESH_RATE, true, "The refresh interval, in seconds (default: 10)");
+        options.getOption(CONF_REFRESH_RATE).setArgName("rateInMS");
+
+        options.addOption("r", CONF_DELETE_RATE, true, "The refresh interval to check deletion, in minutes (default: 10)");
+        options.getOption(CONF_DELETE_RATE).setArgName("rateInM");
 
         // Misc
         options.addOption("h", CONF_HELP, false, "Print this help.");
         options.addOption(null, CONF_BATCH_SIZE, true, "Size of the batch. (default: 1000)");
         options.addOption(null, CONF_LOG, true, "Path to logging configuration file.");
         options.getOption(CONF_LOG).setArgName("path/to/logging.properties");
+        
+        // force drivers loading
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); 
+            Class.forName("org.postgresql.Driver");
+            Class.forName("org.sqlite.JDBC");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void usage(int exitCode) {
@@ -124,7 +137,7 @@ public class Connector {
                 configuration = new JSONObject();
             }
         } catch (Exception e) {
-            LOGGER.severe(e.getMessage());
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
             usage(1);
         }
         if (cli.hasOption(CONF_HELP)) {
@@ -134,7 +147,7 @@ public class Connector {
         // command line arguments override the configuration
         for (Option opt : cli.getOptions()) {
             String o = opt.getLongOpt();
-            if (o.equals(CONF_HELP) || o.equals(CONF_DUMP) || o.equals(CONF_UPDATE)) {
+            if (o.equals(CONF_HELP) || o.equals(CONF_DUMP_ONLY)) {
                 continue;
             } else {
                 // single-valued attributes
@@ -154,25 +167,31 @@ public class Connector {
             } catch (Exception e) {
                 throw new ParseException("Cannot log to " + (String) configuration.get("log"));
             }            
-            if (!configuration.containsKey(CONF_QUERY)) {
-                throw new ParseException("Missing '" + CONF_QUERY + "' option.");
+            if (!configuration.containsKey(CONF_SELECT_QUERY)) {
+                throw new ParseException("Missing '" + CONF_SELECT_QUERY + "' option.");
             }
             if (!configuration.containsKey(CONF_SOURCE)) {
                 throw new ParseException("Missing '" + CONF_SOURCE + "' option.");
             }
-            if (!configuration.containsKey(CONF_TARGET)) {
-                throw new ParseException("Missing '" + CONF_TARGET + "' option.");
+            if (!configuration.containsKey(CONF_APPLICATION_ID)) {
+                throw new ParseException("Missing '" + CONF_APPLICATION_ID + "' option.");
             }
-            if (cli.hasOption(CONF_UPDATE)) {
-            	if (!configuration.containsKey(CONF_QUERY_UPDATE)) {
-            		throw new ParseException("Missing '" + CONF_QUERY_UPDATE + "' option.");
+            if (!configuration.containsKey(CONF_API_KEY)) {
+                throw new ParseException("Missing '" + CONF_API_KEY + "' option.");
+            }
+            if (!configuration.containsKey(CONF_INDEX)) {
+                throw new ParseException("Missing '" + CONF_INDEX + "' option.");
+            }
+            if (!configuration.containsKey(CONF_PRIMARY_FIELD)) {
+                throw new ParseException("Missing '" + CONF_PRIMARY_FIELD + "' option.");
+            }
+            if (!cli.hasOption(CONF_DUMP_ONLY)) {
+            	if (!configuration.containsKey(CONF_UPDATE_QUERY)) {
+            		throw new ParseException("Missing '" + CONF_UPDATE_QUERY + "' option.");
             	}
             	if (!configuration.containsKey(CONF_UPDATED_AT_FIELD)) {
             		throw new ParseException("Missing '" + CONF_UPDATED_AT_FIELD + "' option.");
             	}
-            }
-            if (!configuration.containsKey(CONF_UNIQUE_ID_FIELD)) {
-            	throw new ParseException("Missing '" + CONF_UNIQUE_ID_FIELD + "' option.");
             }
         } catch (ParseException e) {
             LOGGER.severe(e.getMessage());
@@ -184,22 +203,20 @@ public class Connector {
         Worker updateWorker = null;
         Worker deleteWorker = null;
         try {
-            if (cli.hasOption(CONF_DUMP)) {
+            if (cli.hasOption(CONF_DUMP_ONLY)) {
             	tryUntil(new Dumper(configuration), 1000);
                 return;
-            } else if (cli.hasOption(CONF_UPDATE)) {
+            } else {
                 updateWorker = new Updater(configuration);
                 deleteWorker = new Deleter(configuration);
-            } else {
-                throw new ParseException("Either '" + CONF_DUMP + "' or '" + CONF_UPDATE + "' options should be specified");
             }
         } catch (Exception e) {
-        	LOGGER.severe(e.getMessage());
+        	LOGGER.log(Level.SEVERE, e.getMessage(), e);
             usage(2);
         }
         try {
-        	long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH) != null ? (String) configuration.get(CONF_REFRESH) : "0");
-        	long timeBetweenDelete = Long.parseLong(configuration.get(CONF_REFRESH_DELETED) != null ? (String) configuration.get(CONF_REFRESH_DELETED) : "0");
+        	long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH_RATE) != null ? (String) configuration.get(CONF_REFRESH_RATE) : "10");
+        	long timeBetweenDelete = Long.parseLong(configuration.get(CONF_DELETE_RATE) != null ? (String) configuration.get(CONF_DELETE_RATE) : "10");
         	long elapsedLoop = 0;
             try {
             	if (!updateWorker.isInitialised())

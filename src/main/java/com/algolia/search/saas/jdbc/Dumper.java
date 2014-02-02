@@ -14,7 +14,7 @@ public class Dumper extends Worker {
     public Dumper(JSONObject configuration) throws SQLException, ParseException, JSONException {
         super(configuration);
 
-        this.query = (String) configuration.get(Connector.CONF_QUERY);
+        this.query = (String) configuration.get(Connector.CONF_SELECT_QUERY);
         assert (query != null);
         this.stmt = database.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         this.stmt.setFetchSize(Integer.MIN_VALUE);

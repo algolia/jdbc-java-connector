@@ -2,47 +2,41 @@ JDBC Java Connector
 ===================
 
 
-Setup:
-------
-
 ```shell
-sh$> mvn install
-sh$> mvn package
-sh$> mvn exec:java -Dexec.mainClass="com.algolia.search.saas.jdbc.Connector" -Dexec.args="--dump --query 'SELECT '*' FROM projects' --target YourApplicationId:YourApiKey:YourIndex --source jdbc:mysql://localhost/YourDB --username YourUser --password YourPassword"
+usage: jdbc-java-connector [option]... [path/to/config.json]
+    --apiKey <YourApiKey>                                      Algolia APPI_KEY
+    --applicationId <YourApplicationID>                        Algolia APPLICATION_ID
+    --batchSize <arg>                                          Size of the batch. (default: 1000)
+ -d,--dump                                                     Perform a dump only
+ -h,--help                                                     Print this help.
+    --index <YourIndex>                                        Destination index
+    --log <path/to/logging.properties>                         Path to logging configuration file.
+    --password <arg>                                           DB password
+    --primaryField <id>                                        Field name used to identify rows (default: id)
+ -q,--selectQuery <SELECT * FROM table>                        SQL query used to fetched all rows
+ -r,--deleteRate <rateInM>                                     The refresh interval to check deletion, in minutes (default: 10)
+ -s,--source <jdbc:DRIVER://HOST/DB>                           JDBC connection string
+ -u,--updateQuery <SELECT * FROM table WHERE _$ > updatedAt>   SQL query used to fetched updated rows. Use _$ as placeholder
+    --updatedAtField <field>                                   Field name used to find updated rows (default: updated_at)
+    --username <arg>                                           DB username
 ```
-
-Usage:
-------
-
-```
-usage: jdbc-java-connector
- -c,--configuration <path/to/config.json>   Configuration file.
- -d,--dump                                  Perform a dump
- -h,--help                                  Print this help.
-    --password <arg>                        DB password
- -q,--query <SELECT * FROM table>           SQL query used to fetched all rows
- -r,--refresh <rateInMS>                    The refresh interval, in seconds
- -s,--source <jdbc:DRIVER://HOST/DB>        JDBC connection string
- -t,--target <APPID:APPKEY:Index>           Algolia credentials and index
- -u,--update                                Perform an update
-    --updatedAtField <field>                Field name used to find updated rows.
-    --username <arg>                        DB username
-```
-
-Update mode:
-------------
-
-In update mode you can use the last value of the tracked attribute like this:
-
-	SELECT * FROM table WHERE _$ < UPDATED_AT
 
 Configuration File:
 -------------------
 
+All command line options can be specified in an external json file:
+
 ```json
 {
-	"attributes":["attr1", "attr2", ...],
-	"track": "updated_at"
+  "selectQuery" : "SELECT * FROM projects WHERE deleted = 0",
+  "updateQuery" : "SELECT * FROM projects WHERE deleted = 0 AND _$ > updated_at",
+  "primaryField" : "id",
+  "source" : "jdbc:mysql://localhost/github",
+  "username" : "root",
+  "password" : "p4ssw0rd",
+  "applicationId" : "YourApplicationID",
+  "apiKey" : "YourApiKey",
+  "index" : "gh_projects",
 }
 ```
 

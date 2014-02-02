@@ -20,18 +20,17 @@ public abstract class Worker {
         this.configuration = configuration;
 
         // Algolia connection
-        final String target = (String) configuration.get(Connector.CONF_TARGET);
-        if (target == null) {
-            throw new ParseException("Missing '" + Connector.CONF_TARGET + "' option");
-        }
-        String[] APPInfo = target.split(":");
-        if (APPInfo.length != 3) {
-            throw new org.apache.commons.cli.ParseException("Invalid target: " + target);
-        }
-        this.client = new APIClient(APPInfo[0], APPInfo[1]);
-        this.index = this.client.initIndex(APPInfo[2]);
+        final String applicationId = (String) configuration.get(Connector.CONF_APPLICATION_ID);
+        assert(applicationId != null);
+        final String apiKey = (String) configuration.get(Connector.CONF_API_KEY);
+        assert(apiKey != null);
+        final String index = (String) configuration.get(Connector.CONF_INDEX);
+        assert(index != null);
+        this.client = new APIClient(applicationId, apiKey);
+        this.index = this.client.initIndex(index);
+
         // DB configuration
-        this.idField = (String) configuration.get(Connector.CONF_UNIQUE_ID_FIELD);
+        this.idField = (String) configuration.get(Connector.CONF_PRIMARY_FIELD);
         assert (idField != null);
         
         // JDBC connection
