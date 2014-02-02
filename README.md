@@ -3,7 +3,7 @@ JDBC Java Connector
 
 
 ```shell
-usage: jdbc-java-connector [option]... [path/to/config.json]
+usage: jdbc-connector.sh [option]... [path/to/config.json]
     --apiKey <YourApiKey>                                      Algolia APPI_KEY
     --applicationId <YourApplicationID>                        Algolia APPLICATION_ID
     --batchSize <arg>                                          Size of the batch. (default: 1000)

@@ -101,7 +101,7 @@ public class Connector {
     private static void usage(int exitCode) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(160);
-        formatter.printHelp("jdbc-java-connector [option]... [path/to/config.json]", options);
+        formatter.printHelp("jdbc-connector.sh [option]... [path/to/config.json]", options);
         System.exit(exitCode);
     }
     
