@@ -13,7 +13,7 @@ uudecode -o \$BIN \$0
 
 command -v java >/dev/null 2>&1 || { echo >&2 "Java is required, please install it first."; exit 1; }
 
-java -jar \$BIN
+java -jar \$BIN "\$@"
 RETURN_VALUE=`echo $?`
 rm -f \$BIN
 exit \$RETURN_VALUE
