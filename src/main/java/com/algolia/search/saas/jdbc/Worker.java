@@ -93,13 +93,13 @@ public abstract class Worker {
                 action.put("body",obj);
                 actions.add(action);
                 if (actions.size() >= batchSize) {
-                	actions = addSetting(actions, lastUpdatedAt); //TODO
-                    //this.index.batch(actions);// TODO
+                	actions = addSetting(actions, lastUpdatedAt);
+                    this.index.batch(actions);
                     actions.clear();
                 }
             }
             if (!actions.isEmpty()) {
-                //this.index.batch(actions); //TODO
+                this.index.batch(actions);
             }
         } finally {
             rs.close();
