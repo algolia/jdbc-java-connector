@@ -167,7 +167,7 @@ public class Connector {
                     LogManager.getLogManager().readConfiguration(Connector.class.getResourceAsStream("logging.properties"));
                 }
             } catch (Exception e) {
-                throw new ParseException("Cannot log to " + (String) configuration.get("log"));
+                throw new ParseException("Cannot read logging configuration from " + (String) configuration.get("log"));
             }            
             if (!configuration.containsKey(CONF_SELECT_QUERY)) {
                 throw new ParseException("Missing '" + CONF_SELECT_QUERY + "' option.");
