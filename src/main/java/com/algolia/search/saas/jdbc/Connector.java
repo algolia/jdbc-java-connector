@@ -198,7 +198,7 @@ public class Connector {
             usage(1);
         }
         
-        LOGGER.info("* Starting connector");
+        LOGGER.info("Starting connector");
 
         Worker updateWorker = null;
         Worker deleteWorker = null;

@@ -18,7 +18,7 @@ public class Updater extends Worker {
     
     @Override
     public void run() throws SQLException, JSONException, AlgoliaException {
-    	Connector.LOGGER.info("Launch Updating.");
+    	Connector.LOGGER.info("Start updating job");
     	try {
 			org.json.JSONObject settings = index.getSettings();
 			lastUpdatedAt = settings.getJSONObject("userDate").getString("lastUpdatedAt");
@@ -34,6 +34,7 @@ public class Updater extends Worker {
         //TODO Activate on the other jdbc    	
     	
     	iterateOnQuery(stmt);
+    	Connector.LOGGER.info("Updating job done");
     }
     private String lastUpdatedAt;
     private final String query;

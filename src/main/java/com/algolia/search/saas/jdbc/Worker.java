@@ -75,7 +75,7 @@ public abstract class Worker {
     }
 	
 	protected void iterateOnQuery(java.sql.PreparedStatement stmt) throws SQLException, JSONException, AlgoliaException {
-		Connector.LOGGER.info("Begin iteration on query.");
+		Connector.LOGGER.info("  Enumerating database");
 		String lastUpdatedAt = "0";
 		ResultSet rs = stmt.executeQuery();
         try {
@@ -104,21 +104,19 @@ public abstract class Worker {
                 action.put("body",obj);
                 actions.add(action);
                 if (actions.size() >= batchSize) {
-                	Connector.LOGGER.info("Batch addObject.");
                 	actions = addSetting(actions, lastUpdatedAt);
                     this.index.batch(actions);
                     actions.clear();
                 }
             }
             if (!actions.isEmpty()) {
-            	Connector.LOGGER.info("Last batch addObject.");
             	actions = addSetting(actions, lastUpdatedAt);
                 this.index.batch(actions);
             }
         } finally {
             rs.close();
         }
-        Connector.LOGGER.info("End iteration on query.");
+        Connector.LOGGER.info("  Database enumerated");
 	}
     
     public abstract void run() throws SQLException, AlgoliaException, JSONException;

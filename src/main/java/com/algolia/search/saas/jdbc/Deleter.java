@@ -31,8 +31,8 @@ public class Deleter extends Worker {
 
 	@Override
 	public void run() throws SQLException, AlgoliaException, JSONException {
-		Connector.LOGGER.info("Launch Deleting.");
-		Connector.LOGGER.info("Begin browse Index.");
+		Connector.LOGGER.info("Start deleting job");
+		Connector.LOGGER.info("  Enumerating remote index");
 		Set<String> ids = new HashSet<String>();
 		int nbPages = 0;
 		int i = 0;
@@ -45,8 +45,8 @@ public class Deleter extends Worker {
 			}
 		} while (i < nbPages);
 		
-		Connector.LOGGER.info("End browse Index.");
-		Connector.LOGGER.info("Begin database listing.");
+		Connector.LOGGER.info("  Remote index enumerated");
+		Connector.LOGGER.info("  Enumerate database");
 		ResultSet rs = stmt.executeQuery();
 		try {
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -58,7 +58,7 @@ public class Deleter extends Worker {
 					}
                 }
             }
-            Connector.LOGGER.info("End database listing.");
+            Connector.LOGGER.info("  Database enumerated");
             List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
             
             for (String id : ids) {
@@ -77,6 +77,7 @@ public class Deleter extends Worker {
         } finally {
             rs.close();
         }
+		Connector.LOGGER.info("Deleting job done");
 	}
 	
 	private final java.sql.PreparedStatement stmt;

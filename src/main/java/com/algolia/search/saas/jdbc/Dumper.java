@@ -25,8 +25,9 @@ public class Dumper extends Worker {
 
     @Override
     public void run() throws SQLException, AlgoliaException, JSONException {
-    	Connector.LOGGER.info("Launch Dumping.");
+    	Connector.LOGGER.info("Start initial import job");
         iterateOnQuery(stmt);
+        Connector.LOGGER.info("Initial import done");
     }
 
     private final java.sql.PreparedStatement stmt;
