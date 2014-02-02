@@ -24,7 +24,8 @@ public class Dumper extends Worker {
     }
 
     @Override
-    public void run() throws SQLException, AlgoliaException, JSONException {   
+    public void run() throws SQLException, AlgoliaException, JSONException {
+    	Connector.LOGGER.info("Launch Dumping.");
         iterateOnQuery(stmt);
     }
 

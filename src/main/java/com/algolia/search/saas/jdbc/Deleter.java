@@ -31,6 +31,8 @@ public class Deleter extends Worker {
 
 	@Override
 	public void run() throws SQLException, AlgoliaException, JSONException {
+		Connector.LOGGER.info("Launch Deleting.");
+		Connector.LOGGER.info("Begin browse Index.");
 		Set<String> ids = new HashSet<String>();
 		int nbPages = 0;
 		int i = 0;
@@ -43,6 +45,8 @@ public class Deleter extends Worker {
 			}
 		} while (i < nbPages);
 		
+		Connector.LOGGER.info("End browse Index.");
+		Connector.LOGGER.info("Begin database listing.");
 		ResultSet rs = stmt.executeQuery();
 		try {
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -54,6 +58,7 @@ public class Deleter extends Worker {
 					}
                 }
             }
+            Connector.LOGGER.info("End database listing.");
             List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
             
             for (String id : ids) {
@@ -64,11 +69,13 @@ public class Deleter extends Worker {
                 action.put("body",body);
                 actions.add(action);
                 if (actions.size() >= batchSize) {
+                	Connector.LOGGER.info("Batch deleteObject");
                     //this.index.batch(actions);
                     actions.clear();
                 }
             }
             if (!actions.isEmpty()) {
+            	Connector.LOGGER.info("Last batch deleteObject");
                 this.index.addObjects(actions);
             }
         } finally {

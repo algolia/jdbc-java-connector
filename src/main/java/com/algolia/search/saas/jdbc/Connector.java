@@ -93,7 +93,7 @@ public class Connector {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws ParseException, SQLException, AlgoliaException {
-        CommandLine cli;
+        CommandLine cli = null;
         JSONObject configuration = null;
 
         try {
@@ -107,8 +107,7 @@ public class Connector {
                 configuration = new JSONObject();
             }
         } catch (Exception e) {
-            cli = null; // avoid non-initialized warning
-            System.err.println(e.getMessage());
+            LOGGER.severe(e.getMessage());
             usage(1);
         }
         if (cli.hasOption(CONF_HELP)) {
@@ -154,51 +153,61 @@ public class Connector {
             	if (!configuration.containsKey(CONF_UPDATED_AT_FIELD)) {
             		throw new ParseException("Missing '" + CONF_UPDATED_AT_FIELD + "' option.");
             	}
-            	if (!configuration.containsKey(CONF_UNIQUE_ID_FIELD)) {
-            		throw new ParseException("Missing '" + CONF_UNIQUE_ID_FIELD + "' option.");
-            	}
             }
-            if ((configuration.containsKey(CONF_REFRESH) || configuration.containsKey(CONF_REFRESH_DELETED))
-            		&& configuration.containsKey(CONF_UNIQUE_ID_FIELD)) {
+            if (!configuration.containsKey(CONF_UNIQUE_ID_FIELD)) {
             	throw new ParseException("Missing '" + CONF_UNIQUE_ID_FIELD + "' option.");
             }
         } catch (ParseException e) {
-            System.err.println(e.getMessage());
+            LOGGER.severe(e.getMessage());
             usage(1);
         }
         
         LOGGER.info("* Starting connector");
 
-        Worker worker;
+        Worker updateWorker = null;
+        Worker deleteWorker = null;
         try {
             if (cli.hasOption(CONF_DUMP)) {
-                worker = new Dumper(configuration);
+            	Worker worker = new Dumper(configuration);
+                worker.run();
+                return;
             } else if (cli.hasOption(CONF_UPDATE)) {
-                worker = new Updater(configuration);
+                updateWorker = new Updater(configuration);
+                deleteWorker = new Deleter(configuration);
             } else {
                 throw new ParseException("Either '" + CONF_DUMP + "' or '" + CONF_UPDATE + "' options should be specified");
             }
         } catch (Exception e) {
-            worker = null; // avoid non-initialized warning
-            System.err.println(e.getMessage());
+        	LOGGER.severe(e.getMessage());
             usage(2);
         }
         try {
-            // do {
-            // if (!worker.fetchDataBase()) {
-            // System.err.println("Error during dumping.");
-            // return;
-            // }
-            // Thread.sleep(1000 * Integer.parseInt(settings.time));
-            // } while (running);
+        	long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH) != null ? (String) configuration.get(CONF_REFRESH) : "0");
+        	long timeBetweenDelete = Long.parseLong(configuration.get(CONF_REFRESH_DELETED) != null ? (String) configuration.get(CONF_REFRESH_DELETED) : "0");
+        	long elapsedLoop = 0;
             try {
-				worker.run();
+            	if (!updateWorker.isInitialised())
+            		(new Dumper(configuration)).run();
+            	do {
+            		if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop) {
+            			deleteWorker.run();
+            			elapsedLoop = 0;
+            		}
+            		updateWorker.run();
+            		Thread.sleep(1000 * timeBetweenUpdate);
+            		elapsedLoop += timeBetweenUpdate;
+            	} while(timeBetweenUpdate != 0);
 			} catch (JSONException e) {
-				System.err.println(e.getMessage());
+				LOGGER.severe(e.getMessage());
+			} catch (InterruptedException e) {
+				LOGGER.severe(e.getMessage());
 			}
         } finally {
-            if (worker != null) {
-                worker.close();
+            if (updateWorker != null) {
+            	updateWorker.close();
+            }
+            if (deleteWorker != null) {
+            	deleteWorker.close();
             }
         }
     }

@@ -18,6 +18,7 @@ public class Updater extends Worker {
     
     @Override
     public void run() throws SQLException, JSONException, AlgoliaException {
+    	Connector.LOGGER.info("Launch Updating.");
     	try {
 			org.json.JSONObject settings = index.getSettings();
 			lastUpdatedAt = settings.getJSONObject("userDate").getString("lastUpdatedAt");

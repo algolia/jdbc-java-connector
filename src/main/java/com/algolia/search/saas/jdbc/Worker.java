@@ -52,11 +52,22 @@ public abstract class Worker {
         }
     }
     
+    public boolean isInitialised() {
+    	try {
+    		org.json.JSONObject settings = this.index.getSettings();
+			return settings.getJSONObject("userData").getString("lastUpdatedAt") != null;
+		} catch (Exception e) { //Index not found or First dump
+			Connector.LOGGER.info(e.getMessage());
+			return false;
+		}
+    }
+    
 	public List<org.json.JSONObject> addSetting(List<org.json.JSONObject> actions, String lastUpdate) throws JSONException {
     	org.json.JSONObject action = new org.json.JSONObject();
     	org.json.JSONObject userData = new org.json.JSONObject();
-    	userData.put("lastUpdatedAt", lastUpdate);
-    	action.put("userData", userData);
+    	org.json.JSONObject lastUpdatedAt = new org.json.JSONObject();
+    	lastUpdatedAt.put("lastUpdatedAt", lastUpdate);
+    	userData.put("userData", lastUpdatedAt);
     	action.put("action", "changeSettings");
     	action.put("body", userData);
     	actions.add(action);
@@ -65,6 +76,7 @@ public abstract class Worker {
     }
 	
 	protected void iterateOnQuery(java.sql.PreparedStatement stmt) throws SQLException, JSONException, AlgoliaException {
+		Connector.LOGGER.info("Begin iteration on query.");
 		String lastUpdatedAt = "0";
 		ResultSet rs = stmt.executeQuery();
         try {
@@ -93,17 +105,21 @@ public abstract class Worker {
                 action.put("body",obj);
                 actions.add(action);
                 if (actions.size() >= batchSize) {
+                	Connector.LOGGER.info("Batch addObject.");
                 	actions = addSetting(actions, lastUpdatedAt);
                     this.index.batch(actions);
                     actions.clear();
                 }
             }
             if (!actions.isEmpty()) {
+            	Connector.LOGGER.info("Last batch addObject.");
+            	actions = addSetting(actions, lastUpdatedAt);
                 this.index.batch(actions);
             }
         } finally {
             rs.close();
         }
+        Connector.LOGGER.info("End iteration on query.");
 	}
     
     public abstract void run() throws SQLException, AlgoliaException, JSONException;
