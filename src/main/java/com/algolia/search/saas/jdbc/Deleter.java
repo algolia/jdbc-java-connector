@@ -63,20 +63,16 @@ public class Deleter extends Worker {
             
             for (String id : ids) {
             	org.json.JSONObject action = new org.json.JSONObject();
-            	org.json.JSONObject body = new org.json.JSONObject();
-            	body.put("ObjectID", id);
             	action.put("action", "deleteObject");
-                action.put("body",body);
+                action.put("objectID", id);
                 actions.add(action);
                 if (actions.size() >= batchSize) {
-                	Connector.LOGGER.info("Batch deleteObject");
-                    //this.index.batch(actions);
+                    this.index.batch(actions);
                     actions.clear();
                 }
             }
             if (!actions.isEmpty()) {
-            	Connector.LOGGER.info("Last batch deleteObject");
-                this.index.addObjects(actions);
+                this.index.batch(actions);
             }
         } finally {
             rs.close();
