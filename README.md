@@ -16,7 +16,7 @@ usage: jdbc-connector.sh [option]... [path/to/config.json]
  -q,--selectQuery <SELECT * FROM table>                        SQL query used to fetched all rows
  -r,--deleteRate <rateInM>                                     The refresh interval to check deletion, in minutes (default: 10)
  -s,--source <jdbc:DRIVER://HOST/DB>                           JDBC connection string
- -u,--updateQuery <SELECT * FROM table WHERE _$ > updatedAt>   SQL query used to fetched updated rows. Use _$ as placeholder
+ -u,--updateQuery <SELECT * FROM table WHERE updatedAt > _$>   SQL query used to fetched updated rows. Use _$ as placeholder
     --updatedAtField <field>                                   Field name used to find updated rows (default: updated_at)
     --username <arg>                                           DB username
 ```

@@ -65,7 +65,7 @@ public class Connector {
         options.addOption("q", CONF_SELECT_QUERY, true, "SQL query used to fetched all rows");
         options.getOption(CONF_SELECT_QUERY).setArgName("SELECT * FROM table");
         options.addOption("u", CONF_UPDATE_QUERY, true, "SQL query used to fetched updated rows. Use _$ as placeholder");
-        options.getOption(CONF_UPDATE_QUERY).setArgName("SELECT * FROM table WHERE _$ > updatedAt");
+        options.getOption(CONF_UPDATE_QUERY).setArgName("SELECT * FROM table WHERE updatedAt > _$");
 
         // Update configuration
         options.addOption(null, CONF_UPDATED_AT_FIELD, true, "Field name used to find updated rows (default: updated_at)");
