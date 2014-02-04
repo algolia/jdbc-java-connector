@@ -20,9 +20,9 @@ import org.json.simple.parser.JSONParser;
 import com.algolia.search.saas.AlgoliaException;
 
 public class Connector {
-    
+
     public static final Logger LOGGER = Logger.getLogger("connector");
-    
+
     public static final String CONF_SOURCE = "source";
     public static final String CONF_USERNAME = "username";
     public static final String CONF_PASSWORD = "password";
@@ -49,7 +49,7 @@ public class Connector {
         options.addOption(null, CONF_USERNAME, true, "DB username");
 
         options.addOption(null, CONF_PASSWORD, true, "DB password");
-        
+
         // Destination
         options.addOption(null, CONF_APPLICATION_ID, true, "Algolia APPLICATION_ID");
         options.getOption(CONF_APPLICATION_ID).setArgName("YourApplicationID");
@@ -59,7 +59,7 @@ public class Connector {
         options.getOption(CONF_INDEX).setArgName("YourIndex");
 
         // Mode
-        options.addOption("d", CONF_DUMP_ONLY, false, "Perform a dump only");
+        options.addOption("d", CONF_DUMP_ONLY, false, "Perform the initial import and exit (no incremental updates)");
 
         // Query
         options.addOption("q", CONF_SELECT_QUERY, true, "SQL query used to fetched all rows");
@@ -70,12 +70,11 @@ public class Connector {
         // Update configuration
         options.addOption(null, CONF_UPDATED_AT_FIELD, true, "Field name used to find updated rows (default: updated_at)");
         options.getOption(CONF_UPDATED_AT_FIELD).setArgName("field");
-        
-        
+
         // ID field
         options.addOption(null, CONF_PRIMARY_FIELD, true, "Field name used to identify rows (default: id)");
         options.getOption(CONF_PRIMARY_FIELD).setArgName("id");
-        
+
         options.addOption("r", CONF_REFRESH_RATE, true, "The refresh interval, in seconds (default: 10)");
         options.getOption(CONF_REFRESH_RATE).setArgName("rateInMS");
 
@@ -87,10 +86,10 @@ public class Connector {
         options.addOption(null, CONF_BATCH_SIZE, true, "Size of the batch. (default: 1000)");
         options.addOption(null, CONF_LOG, true, "Path to logging configuration file.");
         options.getOption(CONF_LOG).setArgName("path/to/logging.properties");
-        
+
         // force drivers loading
         try {
-            Class.forName("com.mysql.jdbc.Driver"); 
+            Class.forName("com.mysql.jdbc.Driver");
             Class.forName("org.postgresql.Driver");
             Class.forName("org.sqlite.JDBC");
         } catch (Exception e) {
@@ -104,21 +103,21 @@ public class Connector {
         formatter.printHelp("jdbc-connector.sh [option]... [path/to/config.json]", options);
         System.exit(exitCode);
     }
-    
+
     private static void tryUntil(Worker worker, long sleepTime) {
-    	while (true) {
-    			try {
-					worker.run();
-					return;
-				} catch (SQLException | AlgoliaException | JSONException e) {
-				    LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				}
-    			try {
-					Thread.sleep(sleepTime);
-				} catch (InterruptedException e) {
-					continue;
-				}
-    	}
+        while (true) {
+            try {
+                worker.run();
+                return;
+            } catch (SQLException | AlgoliaException | JSONException e) {
+                LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            }
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                continue;
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -143,7 +142,7 @@ public class Connector {
         if (cli.hasOption(CONF_HELP)) {
             usage(1);
         }
-        
+
         // command line arguments override the configuration
         for (Option opt : cli.getOptions()) {
             String o = opt.getLongOpt();
@@ -156,8 +155,9 @@ public class Connector {
                 }
             }
         }
-        
+
         // check mandatory configuration keys
+        boolean dumpOnly = cli.hasOption(CONF_DUMP_ONLY);
         try {
             try {
                 String loggingConfiguration = (String) configuration.get("log");
@@ -168,7 +168,7 @@ public class Connector {
                 }
             } catch (Exception e) {
                 throw new ParseException("Cannot read logging configuration from " + (String) configuration.get("log"));
-            }            
+            }
             if (!configuration.containsKey(CONF_SELECT_QUERY)) {
                 throw new ParseException("Missing '" + CONF_SELECT_QUERY + "' option.");
             }
@@ -187,62 +187,64 @@ public class Connector {
             if (!configuration.containsKey(CONF_PRIMARY_FIELD)) {
                 throw new ParseException("Missing '" + CONF_PRIMARY_FIELD + "' option.");
             }
-            if (!cli.hasOption(CONF_DUMP_ONLY)) {
-            	if (!configuration.containsKey(CONF_UPDATE_QUERY)) {
-            		throw new ParseException("Missing '" + CONF_UPDATE_QUERY + "' option.");
-            	}
-            	if (!configuration.containsKey(CONF_UPDATED_AT_FIELD)) {
-            		throw new ParseException("Missing '" + CONF_UPDATED_AT_FIELD + "' option.");
-            	}
+            if (!dumpOnly) {
+                if (!configuration.containsKey(CONF_UPDATE_QUERY) && !configuration.containsKey(CONF_UPDATED_AT_FIELD)) {
+                    dumpOnly = true;
+                    LOGGER.log(Level.INFO, "No updateQuery/updatedAtField found, forcing --dump mode.");
+                } else {
+                    if (!configuration.containsKey(CONF_UPDATE_QUERY)) {
+                        throw new ParseException("Missing '" + CONF_UPDATE_QUERY + "' option.");
+                    }
+                    if (!configuration.containsKey(CONF_UPDATED_AT_FIELD)) {
+                        throw new ParseException("Missing '" + CONF_UPDATED_AT_FIELD + "' option.");
+                    }
+                }
             }
         } catch (ParseException e) {
             LOGGER.severe(e.getMessage());
             usage(1);
         }
-        
+
         LOGGER.info("Starting connector");
 
+        try {
+            tryUntil(new Dumper(configuration), 1000);
+        } catch (JSONException e) {
+            LOGGER.severe(e.getMessage());
+        }
+        if (dumpOnly) {
+            return;
+        }
         Worker updateWorker = null;
         Worker deleteWorker = null;
         try {
-            if (cli.hasOption(CONF_DUMP_ONLY)) {
-            	tryUntil(new Dumper(configuration), 1000);
-                return;
-            } else {
+            long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH_RATE) != null ? (String) configuration.get(CONF_REFRESH_RATE) : "10");
+            long timeBetweenDelete = Long.parseLong(configuration.get(CONF_DELETE_RATE) != null ? (String) configuration.get(CONF_DELETE_RATE) : "10");
+            long elapsedLoop = 0;
+            try {
                 updateWorker = new Updater(configuration);
                 deleteWorker = new Deleter(configuration);
+                do {
+                    if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop) {
+                        tryUntil(deleteWorker, 1000);
+                        elapsedLoop = 0;
+                    }
+                    tryUntil(updateWorker, 1000);
+                    Thread.sleep(1000 * timeBetweenUpdate);
+                    elapsedLoop += timeBetweenUpdate;
+                } while (timeBetweenUpdate != 0);
+                LOGGER.log(Level.INFO, "Exiting");
+            } catch (JSONException e) {
+                LOGGER.severe(e.getMessage());
+            } catch (InterruptedException e) {
+                LOGGER.severe(e.getMessage());
             }
-        } catch (Exception e) {
-        	LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            usage(2);
-        }
-        try {
-        	long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH_RATE) != null ? (String) configuration.get(CONF_REFRESH_RATE) : "10");
-        	long timeBetweenDelete = Long.parseLong(configuration.get(CONF_DELETE_RATE) != null ? (String) configuration.get(CONF_DELETE_RATE) : "10");
-        	long elapsedLoop = 0;
-            try {
-            	if (!updateWorker.isInitialised())
-            		tryUntil(new Dumper(configuration), 1000); // Constructor can throw
-            	do {
-            		if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop) {
-            			tryUntil(deleteWorker, 1000);
-            			elapsedLoop = 0;
-            		}
-            		tryUntil(updateWorker, 1000);
-            		Thread.sleep(1000 * timeBetweenUpdate);
-            		elapsedLoop += timeBetweenUpdate;
-            	} while(timeBetweenUpdate != 0);
-			} catch (JSONException e) {
-				LOGGER.severe(e.getMessage());
-			} catch (InterruptedException e) {
-				LOGGER.severe(e.getMessage());
-			}
         } finally {
             if (updateWorker != null) {
-            	updateWorker.close();
+                updateWorker.close();
             }
             if (deleteWorker != null) {
-            	deleteWorker.close();
+                deleteWorker.close();
             }
         }
     }

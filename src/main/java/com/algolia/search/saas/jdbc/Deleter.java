@@ -20,66 +20,57 @@ public class Deleter extends Worker {
 	public Deleter(JSONObject configuration) throws SQLException,
 			ParseException, JSONException {
 		super(configuration);
-        this.query = (String) configuration.get(Connector.CONF_SELECT_QUERY);
-        assert (query != null);
-        this.stmt = database.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-        stmt.setFetchSize(Integer.MIN_VALUE);
-        if (stmt instanceof com.mysql.jdbc.Statement) {
-            ((com.mysql.jdbc.Statement) stmt).enableStreamingResults();
+	}
+	
+	@Override
+	protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID) throws SQLException, AlgoliaException {
+	    if (ids.contains(objectID)) {
+	        return;
+	    }
+	    try {
+            org.json.JSONObject action = new org.json.JSONObject();
+            action.put("action", "deleteObject");
+            action.put("objectID", objectID);
+            actions.add(action);
+	    } catch (JSONException e) {
+	        throw new Error(e);
+	    }
+        if (actions.size() >= batchSize) {
+            push(actions);
+            actions.clear();
         }
+	}
+
+	@Override
+	protected void fillUserData(org.json.JSONObject userData) throws JSONException {
 	}
 
 	@Override
 	public void run() throws SQLException, AlgoliaException, JSONException {
 		Connector.LOGGER.info("Start deleting job");
 		Connector.LOGGER.info("  Enumerating remote index");
-		Set<String> ids = new HashSet<String>();
 		int nbPages = 0;
 		int i = 0;
+		ids.clear();
 		do {
-			org.json.JSONObject elements = index.browse(i);
+			org.json.JSONObject elements = index.browse(i, 1000);
 			nbPages = elements.getInt("nbPages");
+			System.out.println(elements);
 			JSONArray hits = elements.getJSONArray("hits");
-			for (int j = 0; j < elements.getInt("nbHits"); ++j) {
-				ids.add(hits.getString(j));
+			for (int j = 0; j < hits.length(); ++j) {
+				ids.add(hits.getJSONObject(j).getString("objectID"));
 			}
+			++i;
 		} while (i < nbPages);
-		
-		Connector.LOGGER.info("  Remote index enumerated");
+		Connector.LOGGER.info("  Remote index enumerated (" + ids.size() + " hits found)");
+
 		Connector.LOGGER.info("  Enumerate database");
-		ResultSet rs = stmt.executeQuery();
-		try {
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columns = rsmd.getColumnCount();
-            while (rs.next()) {
-                for (i = 1; i < columns + 1; i++) {
-                    if (rsmd.getColumnName(i).equals(idField)) {
-						ids.remove(rs.getObject(i));
-					}
-                }
-            }
-            Connector.LOGGER.info("  Database enumerated");
-            List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
-            
-            for (String id : ids) {
-            	org.json.JSONObject action = new org.json.JSONObject();
-            	action.put("action", "deleteObject");
-                action.put("objectID", id);
-                actions.add(action);
-                if (actions.size() >= batchSize) {
-                    this.index.batch(actions);
-                    actions.clear();
-                }
-            }
-            if (!actions.isEmpty()) {
-                this.index.batch(actions);
-            }
-        } finally {
-            rs.close();
-        }
+		iterateOnQuery((String) configuration.get(Connector.CONF_SELECT_QUERY));
+		push(actions);
+		Connector.LOGGER.info("  Database enumerated");
 		Connector.LOGGER.info("Deleting job done");
 	}
 	
-	private final java.sql.PreparedStatement stmt;
-    private final String query;
+    private final Set<String> ids = new HashSet<String>();
+	private final List<org.json.JSONObject> actions = new ArrayList<>();
 }

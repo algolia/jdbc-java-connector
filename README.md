@@ -31,6 +31,7 @@ All command line options can be specified in an external json file:
   "selectQuery" : "SELECT * FROM projects WHERE deleted = 0",
   "updateQuery" : "SELECT * FROM projects WHERE deleted = 0 AND _$ > updated_at",
   "primaryField" : "id",
+  "updatedAtField": "updated_at",
   "source" : "jdbc:mysql://localhost/github",
   "username" : "root",
   "password" : "p4ssw0rd",
