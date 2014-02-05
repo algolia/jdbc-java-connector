@@ -26,7 +26,7 @@ public class Updater extends Worker {
         case Types.TIME:
             return rs.getTime(column).getTime() / 1000;
         case Types.TIMESTAMP:
-            return rs.getLong(column);
+            return rs.getTimestamp(column).getTime() / 1000;
         default:
             throw new Error("Unknow column type");
         }
@@ -50,7 +50,6 @@ public class Updater extends Worker {
 			throw new Error(e);
 		}
         actions.add(action);
-        
     }
     
     @Override
@@ -69,7 +68,7 @@ public class Updater extends Worker {
 		}
         String query = (String) configuration.get(Connector.CONF_UPDATE_QUERY);
         assert (query != null);
-    	Connector.LOGGER.info("Start updating job (" + (String) configuration.get(Connector.CONF_UPDATED_AT_FIELD) + ">=" + this.lastUpdatedAt + ")");
+    	Connector.LOGGER.info("Start updating job");
     	iterateOnQuery(query.replaceAll("_\\$", "'" +  df.format(new Date(lastUpdatedAt * 1000)) + "'"));
     	Connector.LOGGER.info("Updating job done");
     }
