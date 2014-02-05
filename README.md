@@ -1,13 +1,12 @@
 JDBC Java Connector
 ===================
 
-
 ```shell
 usage: jdbc-connector.sh [option]... [path/to/config.json]
     --apiKey <YourApiKey>                                      Algolia APPI_KEY
     --applicationId <YourApplicationID>                        Algolia APPLICATION_ID
     --batchSize <arg>                                          Size of the batch. (default: 1000)
- -d,--dump                                                     Perform a dump only
+ -d,--dump                                                     Perform the initial import and exit (no incremental updates)
  -h,--help                                                     Print this help.
     --index <YourIndex>                                        Destination index
     --log <path/to/logging.properties>                         Path to logging configuration file.
@@ -29,7 +28,7 @@ All command line options can be specified in an external json file:
 ```json
 {
   "selectQuery" : "SELECT * FROM projects WHERE deleted = 0",
-  "updateQuery" : "SELECT * FROM projects WHERE deleted = 0 AND _$ > updated_at",
+  "updateQuery" : "SELECT * FROM projects WHERE deleted = 0 AND updated_at > _$",
   "primaryField" : "id",
   "updatedAtField": "updated_at",
   "source" : "jdbc:mysql://localhost/github",
