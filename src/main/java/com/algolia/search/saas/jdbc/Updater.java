@@ -33,7 +33,7 @@ public class Updater extends Worker {
     }
     
     @Override
-    protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID) throws SQLException {
+    protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID, org.json.JSONObject obj) throws SQLException {
         for (int i = 1; i < rsmd.getColumnCount() + 1; i++) {
             if (rsmd.getColumnName(i).equals(configuration.get(Connector.CONF_UPDATED_AT_FIELD))) {
                 long t = getTimeOfColumn(rsmd, rs, i);
@@ -42,6 +42,15 @@ public class Updater extends Worker {
                 }
             }
         }
+        org.json.JSONObject action = new org.json.JSONObject();
+        try {
+			action.put("action", "addObject");
+			action.put("body", obj);
+		} catch (JSONException e) {
+			throw new Error(e);
+		}
+        actions.add(action);
+        
     }
     
     @Override

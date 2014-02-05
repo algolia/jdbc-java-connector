@@ -64,7 +64,7 @@ public abstract class Worker {
         }
     }
 
-    protected abstract void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID) throws SQLException, AlgoliaException;
+    protected abstract void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID, org.json.JSONObject obj) throws SQLException, AlgoliaException;
     protected abstract void fillUserData(org.json.JSONObject userData) throws JSONException;
     public abstract void run() throws SQLException, AlgoliaException, JSONException;
 
@@ -100,7 +100,6 @@ public abstract class Worker {
         try {
             ResultSetMetaData rsmd = rs.getMetaData();
             int columns = rsmd.getColumnCount();
-            List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
             while (rs.next()) {
                 String objectID = null;
                 org.json.JSONObject obj = new org.json.JSONObject();
@@ -117,19 +116,16 @@ public abstract class Worker {
                     }
                 }
                 if (objectID == null) {
-                    throw new Error("Primary field not found in row");
+                	Connector.LOGGER.warning("Primary field not found in row : skip");
                 }
-                onRow(rsmd, rs, objectID);
-                org.json.JSONObject action = new org.json.JSONObject();
-                action.put("action", "addObject");
-                action.put("body", obj);
-                actions.add(action);
+                onRow(rsmd, rs, objectID, obj);
                 if (actions.size() >= batchSize) {
                     push(actions);
                     actions.clear();
                 }
             }
             push(actions);
+            actions.clear();
         } finally {
             rs.close();
         }
@@ -143,4 +139,5 @@ public abstract class Worker {
     protected final long batchSize;
     protected final String idField;
     protected final org.json.JSONObject userData;
+    protected List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
 }

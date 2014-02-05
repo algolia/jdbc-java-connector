@@ -3,9 +3,7 @@ package com.algolia.search.saas.jdbc;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.cli.ParseException;
@@ -23,22 +21,18 @@ public class Deleter extends Worker {
 	}
 	
 	@Override
-	protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID) throws SQLException, AlgoliaException {
-	    if (ids.contains(objectID)) {
+	protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID, org.json.JSONObject obj) throws SQLException, AlgoliaException {
+	    if (ids.remove(objectID)) {
 	        return;
 	    }
 	    try {
             org.json.JSONObject action = new org.json.JSONObject();
-            action.put("action", "deleteObject");
-            action.put("objectID", objectID);
+            action.put("action", "addObject");
+            action.put("body",obj);
             actions.add(action);
 	    } catch (JSONException e) {
 	        throw new Error(e);
 	    }
-        if (actions.size() >= batchSize) {
-            push(actions);
-            actions.clear();
-        }
 	}
 
 	@Override
@@ -55,7 +49,6 @@ public class Deleter extends Worker {
 		do {
 			org.json.JSONObject elements = index.browse(i, 1000);
 			nbPages = elements.getInt("nbPages");
-			System.out.println(elements);
 			JSONArray hits = elements.getJSONArray("hits");
 			for (int j = 0; j < hits.length(); ++j) {
 				ids.add(hits.getJSONObject(j).getString("objectID"));
@@ -65,12 +58,27 @@ public class Deleter extends Worker {
 		Connector.LOGGER.info("  Remote index enumerated (" + ids.size() + " hits found)");
 
 		Connector.LOGGER.info("  Enumerate database");
+		Connector.LOGGER.info("  Add missing elements");
 		iterateOnQuery((String) configuration.get(Connector.CONF_SELECT_QUERY));
+		Connector.LOGGER.info("  Remove deleted elements");
+		for (String id : ids) {
+			try {
+	            org.json.JSONObject action = new org.json.JSONObject();
+	            action.put("action", "deleteObject");
+	            action.put("objectID", id);
+	            actions.add(action);
+	            if (actions.size() >= batchSize) {
+                    push(actions);
+                    actions.clear();
+                }
+		    } catch (JSONException e) {
+		        throw new Error(e);
+		    }
+		}
 		push(actions);
 		Connector.LOGGER.info("  Database enumerated");
 		Connector.LOGGER.info("Deleting job done");
 	}
 	
     private final Set<String> ids = new HashSet<String>();
-	private final List<org.json.JSONObject> actions = new ArrayList<>();
 }

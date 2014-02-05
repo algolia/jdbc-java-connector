@@ -17,7 +17,15 @@ public class Dumper extends Worker {
     }
     
     @Override
-    protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID) throws SQLException {
+    protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID, org.json.JSONObject obj) throws SQLException {
+    	org.json.JSONObject action = new org.json.JSONObject();
+        try {
+			action.put("action", "addObject");
+			action.put("body", obj);
+		} catch (JSONException e) {
+			throw new Error(e);
+		}
+        actions.add(action);
     }
 
     @Override

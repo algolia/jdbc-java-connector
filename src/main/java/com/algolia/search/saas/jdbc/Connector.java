@@ -39,6 +39,7 @@ public class Connector {
     public static final String CONF_HELP = "help";
     public static final String CONF_BATCH_SIZE = "batchSize";
     public static final String CONF_LOG = "log";
+    public static final String CONF_SKIP_DUMP = "skipDump";
 
     private static final Options options = new Options();
     static {
@@ -146,7 +147,7 @@ public class Connector {
         // command line arguments override the configuration
         for (Option opt : cli.getOptions()) {
             String o = opt.getLongOpt();
-            if (o.equals(CONF_HELP) || o.equals(CONF_DUMP_ONLY)) {
+            if (o.equals(CONF_HELP) || o.equals(CONF_DUMP_ONLY) || o.equals(CONF_SKIP_DUMP)) {
                 continue;
             } else {
                 // single-valued attributes
@@ -158,6 +159,7 @@ public class Connector {
 
         // check mandatory configuration keys
         boolean dumpOnly = cli.hasOption(CONF_DUMP_ONLY);
+        boolean skipDump = cli.hasOption(CONF_SKIP_DUMP);
         try {
             try {
                 String loggingConfiguration = (String) configuration.get("log");
@@ -204,13 +206,15 @@ public class Connector {
             LOGGER.severe(e.getMessage());
             usage(1);
         }
-
+        skipDump = skipDump || configuration.get(CONF_SKIP_DUMP) != null ? (boolean) configuration.get(CONF_SKIP_DUMP) : false;
         LOGGER.info("Starting connector");
-
-        try {
-            tryUntil(new Dumper(configuration), 1000);
-        } catch (JSONException e) {
-            LOGGER.severe(e.getMessage());
+        
+        if (!skipDump) {
+	        try {
+	            tryUntil(new Dumper(configuration), 1000);
+	        } catch (JSONException e) {
+	            LOGGER.severe(e.getMessage());
+	        }
         }
         if (dumpOnly) {
             return;
@@ -225,7 +229,7 @@ public class Connector {
                 updateWorker = new Updater(configuration);
                 deleteWorker = new Deleter(configuration);
                 do {
-                    if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop) {
+                    if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop / 60) {
                         tryUntil(deleteWorker, 1000);
                         elapsedLoop = 0;
                     }
