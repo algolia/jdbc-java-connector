@@ -206,12 +206,12 @@ public class Connector {
             LOGGER.severe(e.getMessage());
             usage(1);
         }
-        skipDump = skipDump || configuration.get(CONF_SKIP_DUMP) != null ? (boolean) configuration.get(CONF_SKIP_DUMP) : false;
         LOGGER.info("Starting connector");
         
+        skipDump = skipDump || configuration.get(CONF_SKIP_DUMP) != null ? (boolean) configuration.get(CONF_SKIP_DUMP) : false;
         if (!skipDump) {
 	        try {
-	            tryUntil(new Dumper(configuration), 1000);
+	            tryUntil(new Synchronizer(configuration), 1000);
 	        } catch (JSONException e) {
 	            LOGGER.severe(e.getMessage());
 	        }
@@ -227,7 +227,7 @@ public class Connector {
             long elapsedLoop = 0;
             try {
                 updateWorker = new Updater(configuration);
-                deleteWorker = new Deleter(configuration);
+                deleteWorker = new Synchronizer(configuration);
                 do {
                     if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop / 60) {
                         tryUntil(deleteWorker, 1000);

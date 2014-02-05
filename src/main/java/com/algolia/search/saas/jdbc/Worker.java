@@ -84,7 +84,7 @@ public abstract class Worker {
             throw new Error(e);
         }
 
-        Connector.LOGGER.log(Level.INFO, "    Push " + (actions.size() - 1) + " records");
+        Connector.LOGGER.log(Level.INFO, "    Push batch of " + (actions.size() - 1) + " actions");
         this.index.batch(actions);
     }
 
