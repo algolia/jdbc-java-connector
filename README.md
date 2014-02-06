@@ -1,6 +1,14 @@
 JDBC Java Connector
 ===================
 
+Setup
+-----
+```shell
+curl -fsSL https://raw.github.com/algolia/jdbc-java-connector/master/dist/jdbc-connector.sh > jdbc-connector.sh
+```
+
+Usage
+-----
 ```shell
 usage: jdbc-connector.sh [option]... [path/to/config.json]
     --apiKey <YourApiKey>                                      Algolia APPI_KEY
@@ -33,12 +41,13 @@ All command line options can be specified in an external json file:
   "primaryField" : "id",
   "updatedAtField": "updated_at",
   "source" : "jdbc:mysql://localhost/github",
-  "username" : "root",
-  "password" : "p4ssw0rd",
-  "applicationId" : "YourApplicationID",
-  "apiKey" : "YourApiKey",
-  "index" : "gh_projects",
+  "username" : "mysqluser",
+  "password" : "mysqlpassword",
+  "applicationId" : "YourAlgoliaApplicationID",
+  "apiKey" : "YourAlgoliaApiKey",
+  "index" : "YourIndexName",
 }
+
 ```
 
 
