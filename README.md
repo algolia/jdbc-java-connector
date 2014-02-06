@@ -7,13 +7,14 @@ usage: jdbc-connector.sh [option]... [path/to/config.json]
     --applicationId <YourApplicationID>                        Algolia APPLICATION_ID
     --batchSize <arg>                                          Size of the batch. (default: 1000)
  -d,--dump                                                     Perform the initial import and exit (no incremental updates)
+    --syncRate <rateInMinutes>                                 The refresh interval to check addition/deletion, in minutes (default: 5)
  -h,--help                                                     Print this help.
     --index <YourIndex>                                        Destination index
     --log <path/to/logging.properties>                         Path to logging configuration file.
     --password <arg>                                           DB password
     --primaryField <id>                                        Field name used to identify rows (default: id)
  -q,--selectQuery <SELECT * FROM table>                        SQL query used to fetched all rows
- -r,--deleteRate <rateInM>                                     The refresh interval to check deletion, in minutes (default: 10)
+ -r,--refreshRate <rateInSeconds>                              The refresh interval, in seconds (default: 10)
  -s,--source <jdbc:DRIVER://HOST/DB>                           JDBC connection string
  -u,--updateQuery <SELECT * FROM table WHERE updatedAt > _$>   SQL query used to fetched updated rows. Use _$ as placeholder
     --updatedAtField <field>                                   Field name used to find updated rows (default: updated_at)

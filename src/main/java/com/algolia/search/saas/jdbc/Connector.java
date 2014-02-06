@@ -35,11 +35,10 @@ public class Connector {
     public static final String CONF_UPDATED_AT_FIELD = "updatedAtField";
     public static final String CONF_PRIMARY_FIELD = "primaryField";
     public static final String CONF_REFRESH_RATE = "refreshRate";
-    public static final String CONF_DELETE_RATE = "deleteRate";
+    public static final String CONF_SYNC_RATE = "syncRate";
     public static final String CONF_HELP = "help";
     public static final String CONF_BATCH_SIZE = "batchSize";
     public static final String CONF_LOG = "log";
-    public static final String CONF_SKIP_DUMP = "skipDump";
 
     private static final Options options = new Options();
     static {
@@ -77,10 +76,10 @@ public class Connector {
         options.getOption(CONF_PRIMARY_FIELD).setArgName("id");
 
         options.addOption("r", CONF_REFRESH_RATE, true, "The refresh interval, in seconds (default: 10)");
-        options.getOption(CONF_REFRESH_RATE).setArgName("rateInMS");
+        options.getOption(CONF_REFRESH_RATE).setArgName("rateInSeconds");
 
-        options.addOption("r", CONF_DELETE_RATE, true, "The refresh interval to check deletion, in minutes (default: 10)");
-        options.getOption(CONF_DELETE_RATE).setArgName("rateInM");
+        options.addOption(null, CONF_SYNC_RATE, true, "The refresh interval to check addition/deletion, in minutes (default: 5)");
+        options.getOption(CONF_SYNC_RATE).setArgName("rateInMinutes");
 
         // Misc
         options.addOption("h", CONF_HELP, false, "Print this help.");
@@ -147,7 +146,7 @@ public class Connector {
         // command line arguments override the configuration
         for (Option opt : cli.getOptions()) {
             String o = opt.getLongOpt();
-            if (o.equals(CONF_HELP) || o.equals(CONF_DUMP_ONLY) || o.equals(CONF_SKIP_DUMP)) {
+            if (o.equals(CONF_HELP) || o.equals(CONF_DUMP_ONLY)) {
                 continue;
             } else {
                 // single-valued attributes
@@ -159,7 +158,6 @@ public class Connector {
 
         // check mandatory configuration keys
         boolean dumpOnly = cli.hasOption(CONF_DUMP_ONLY);
-        boolean skipDump = cli.hasOption(CONF_SKIP_DUMP);
         try {
             try {
                 String loggingConfiguration = (String) configuration.get("log");
@@ -208,47 +206,45 @@ public class Connector {
         }
         LOGGER.info("Starting connector");
         
-        skipDump = skipDump || configuration.get(CONF_SKIP_DUMP) != null ? (boolean) configuration.get(CONF_SKIP_DUMP) : false;
-        if (!skipDump) {
-	        try {
-	            tryUntil(new Synchronizer(configuration), 1000);
-	        } catch (JSONException e) {
-	            LOGGER.severe(e.getMessage());
-	        }
-        }
-        if (dumpOnly) {
-            return;
-        }
-        Worker updateWorker = null;
-        Worker deleteWorker = null;
+        Worker updater = null;
+        Worker synchronizer = null;
         try {
-            long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH_RATE) != null ? (String) configuration.get(CONF_REFRESH_RATE) : "10");
-            long timeBetweenDelete = Long.parseLong(configuration.get(CONF_DELETE_RATE) != null ? (String) configuration.get(CONF_DELETE_RATE) : "10");
-            long elapsedLoop = 0;
+            long timeBetweenUpdate = Long.parseLong(configuration.get(CONF_REFRESH_RATE) != null ? (String) configuration.get(CONF_REFRESH_RATE) : "10") * 1000;
+            long timeBetweenSync = Long.parseLong(configuration.get(CONF_SYNC_RATE) != null ? (String) configuration.get(CONF_SYNC_RATE) : "5") * 1000 * 60;
             try {
-                updateWorker = new Updater(configuration);
-                deleteWorker = new Synchronizer(configuration);
+                synchronizer = new Synchronizer(configuration);
+
+                // initial dump
+                tryUntil(synchronizer, 1000);
+                long lastUpdatedAt = System.currentTimeMillis();
+                long lastSynchronizedAt = System.currentTimeMillis();
+                
+                if (!dumpOnly) {
+                    updater = new Updater(configuration);
+                }
                 do {
-                    if (timeBetweenDelete != 0 && timeBetweenDelete <= elapsedLoop / 60) {
-                        tryUntil(deleteWorker, 1000);
-                        elapsedLoop = 0;
+                    long at = System.currentTimeMillis();
+                    if (at - lastSynchronizedAt > timeBetweenSync) {
+                        tryUntil(synchronizer, 1000);
+                        lastSynchronizedAt = at;
                     }
-                    tryUntil(updateWorker, 1000);
-                    Thread.sleep(1000 * timeBetweenUpdate);
-                    elapsedLoop += timeBetweenUpdate;
-                } while (timeBetweenUpdate != 0);
-                LOGGER.log(Level.INFO, "Exiting");
+                    if (updater != null && at - lastUpdatedAt > timeBetweenUpdate) {
+                        tryUntil(updater, 1000);
+                        lastUpdatedAt = at;
+                    }
+                    Thread.sleep(1000);
+                } while (true);
             } catch (JSONException e) {
                 LOGGER.severe(e.getMessage());
             } catch (InterruptedException e) {
                 LOGGER.severe(e.getMessage());
             }
         } finally {
-            if (updateWorker != null) {
-                updateWorker.close();
+            if (updater != null) {
+                updater.close();
             }
-            if (deleteWorker != null) {
-                deleteWorker.close();
+            if (synchronizer != null) {
+                synchronizer.close();
             }
         }
     }
