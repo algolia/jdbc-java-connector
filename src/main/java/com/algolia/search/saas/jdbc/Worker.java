@@ -72,20 +72,18 @@ public abstract class Worker {
         if (actions.isEmpty()) {
             return;
         }
+        org.json.JSONObject settings = null;
         try {
-            org.json.JSONObject action = new org.json.JSONObject();
-            action.put("action", "changeSettings");
-            org.json.JSONObject body = new org.json.JSONObject();
+            settings = new org.json.JSONObject();
             fillUserData(userData);
-            body.put("userData", userData);
-            action.put("body", body);
-            actions.add(action);
+            settings.put("userData", userData);
         } catch (JSONException e) {
             throw new Error(e);
         }
 
         Connector.LOGGER.log(Level.INFO, "    Push batch of " + (actions.size() - 1) + " actions");
         this.index.batch(actions);
+        this.index.setSettings(settings);
     }
 
     protected void iterateOnQuery(String query) throws SQLException, JSONException, AlgoliaException {
