@@ -103,11 +103,11 @@ public abstract class Worker {
                 org.json.JSONObject obj = new org.json.JSONObject();
                 for (int i = 1; i < columns + 1; i++) {
                     try {
-                        if (rsmd.getColumnName(i).equals(idField)) {
+                        if (rsmd.getColumnLabel(i).equals(idField)) {
                             objectID = rs.getObject(i).toString();
                             obj.put("objectID", objectID);
                         } else {
-                            obj.put(rsmd.getColumnName(i), rs.getObject(i));
+                            obj.put(rsmd.getColumnLabel(i), rs.getObject(i));
                         }
                     } catch (JSONException e) {
                         throw new Error(e);

@@ -35,7 +35,7 @@ public class Updater extends Worker {
     @Override
     protected void onRow(ResultSetMetaData rsmd, ResultSet rs, String objectID, org.json.JSONObject obj) throws SQLException {
         for (int i = 1; i < rsmd.getColumnCount() + 1; i++) {
-            if (rsmd.getColumnName(i).equals(configuration.get(Connector.CONF_UPDATED_AT_FIELD))) {
+            if (rsmd.getColumnLabel(i).equals(configuration.get(Connector.CONF_UPDATED_AT_FIELD))) {
                 long t = getTimeOfColumn(rsmd, rs, i);
                 if (t > this.lastUpdatedAt) {
                     this.lastUpdatedAt = t;
