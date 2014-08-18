@@ -45,7 +45,7 @@ All command line options can be specified in an external json file:
   "password" : "mysqlpassword",
   "applicationId" : "YourAlgoliaApplicationID",
   "apiKey" : "YourAlgoliaApiKey",
-  "index" : "YourIndexName",
+  "index" : "YourIndexName"
 }
 
 ```
