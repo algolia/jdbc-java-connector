@@ -164,7 +164,7 @@ public class Connector {
                 if (loggingConfiguration != null) {
                     LogManager.getLogManager().readConfiguration(new FileInputStream(loggingConfiguration));
                 } else {
-                    LogManager.getLogManager().readConfiguration(Connector.class.getResourceAsStream("logging.properties"));
+                    LogManager.getLogManager().readConfiguration(Connector.class.getResourceAsStream("/logging.properties"));
                 }
             } catch (Exception e) {
                 throw new ParseException("Cannot read logging configuration from " + (String) configuration.get("log"));

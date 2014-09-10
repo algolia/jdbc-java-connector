@@ -52,6 +52,15 @@
 		</repository>
 	</repositories>
 	<build>
+		<resources>
+		  <resource>
+		    <directory>src/main/java/com/algolia/search/saas/jdbc/</directory>
+		    <includes>
+		    	<include>logging.properties</include>
+		    </includes>
+		    <filtering>false</filtering>
+		  </resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -93,6 +102,16 @@
 					</archive>
 				</configuration>
 			</plugin>
+			<plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-resources-plugin</artifactId>
+		        <version>2.6</version>
+		        <configuration>
+		        	<nonFilteredFileExtensions>
+		        		<nonFilteredFileExtension>properties</nonFilteredFileExtension>
+		        	</nonFilteredFileExtensions>
+		        </configuration>
+		    </plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
