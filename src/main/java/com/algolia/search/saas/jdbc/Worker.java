@@ -89,7 +89,6 @@ public abstract class Worker {
     protected void iterateOnQuery(String query) throws SQLException, JSONException, AlgoliaException {
         Connector.LOGGER.info("  Executing query: " + query);
         java.sql.PreparedStatement stmt = database.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY); 
-        stmt.setFetchSize(Integer.MIN_VALUE);
         if (stmt instanceof com.mysql.jdbc.Statement) {
             ((com.mysql.jdbc.Statement) stmt).enableStreamingResults();
         }
