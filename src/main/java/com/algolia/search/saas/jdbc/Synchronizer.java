@@ -47,6 +47,7 @@ public class Synchronizer extends Worker {
 	@Override
 	public void run() throws SQLException, AlgoliaException, JSONException {
 		Connector.LOGGER.info("Start synchronization job");
+		checkAndReconnect();
 		Connector.LOGGER.info("  Enumerating remote index");
 		int nbPages = 0;
 		int i = 0;

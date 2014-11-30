@@ -59,6 +59,7 @@ public class Updater extends Worker {
     
     @Override
     public void run() throws SQLException, JSONException, AlgoliaException {
+    	checkAndReconnect();
         SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     	try {
 			this.lastUpdatedAt = this.userData.getLong(LAST_UPDATED_AT_SETTING);

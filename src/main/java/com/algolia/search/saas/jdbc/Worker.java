@@ -35,7 +35,7 @@ public abstract class Worker {
         assert (idField != null);
 
         // JDBC connection
-        final String source = (String) configuration.get(Connector.CONF_SOURCE);
+        this.source = (String) configuration.get(Connector.CONF_SOURCE);
         if (source == null) {
             throw new ParseException("Missing '" + Connector.CONF_SOURCE + "' option");
         }
@@ -56,6 +56,14 @@ public abstract class Worker {
             userData = new org.json.JSONObject();
         }
         this.userData = userData;
+    }
+    
+    public void checkAndReconnect() throws SQLException {
+    	if (!this.database.isClosed() && this.database.isValid(1)) {
+    		return;
+    	}
+        this.database = DriverManager.getConnection(source, (String) configuration.get(Connector.CONF_USERNAME),
+                (String) configuration.get(Connector.CONF_PASSWORD));
     }
 
     public void close() throws SQLException {
@@ -132,9 +140,10 @@ public abstract class Worker {
     protected final JSONObject configuration;
     protected final APIClient client;
     protected final Index index;
-    protected final java.sql.Connection database;
+    protected java.sql.Connection database;
     protected final long batchSize;
     protected final String idField;
+    protected final String source;
     protected final org.json.JSONObject userData;
     protected List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
 }
