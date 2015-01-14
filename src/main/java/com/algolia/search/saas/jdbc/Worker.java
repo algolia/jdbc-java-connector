@@ -4,6 +4,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -114,7 +115,11 @@ public abstract class Worker {
                             objectID = rs.getObject(i).toString();
                             obj.put("objectID", objectID);
                         } else {
-                            obj.put(rsmd.getColumnLabel(i), rs.getObject(i));
+                        	if (rsmd.getColumnType(i) == Types.ARRAY) {
+                        		obj.put(rsmd.getColumnLabel(i), rs.getArray(i).getArray());
+                        	} else {
+                        		obj.put(rsmd.getColumnLabel(i), rs.getObject(i));
+                        	}
                         }
                     } catch (JSONException e) {
                         throw new Error(e);
