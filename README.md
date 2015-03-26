@@ -1,6 +1,10 @@
 JDBC Java Connector
 ===================
 
+This connector synchronizes your existing SQL database with Algolia's indices without requiring you to write a single line of code in your application or website. MySQL, PostgreSQL and Sqlite3 are currently supported.
+
+First, it will list all your rows with the `selectQuery` and perform the initial indexing. Then, every `refreshRate` seconds, it will look for updated rows using the `updateQuery` and send the updates to Algolia. Deletions will be detected every `deleteRate` minutes performing a full scan (+diff) of both your database and index.
+
 Setup
 -----
 ```shell
@@ -29,10 +33,10 @@ usage: jdbc-connector.sh [option]... [path/to/config.json]
     --username <arg>                                           DB username
 ```
 
-Configuration File:
+Sample configuration:
 -------------------
 
-All command line options can be specified in an external json file:
+All command line options can be specified in an external JSON file:
 
 ```json
 {
@@ -47,56 +51,8 @@ All command line options can be specified in an external json file:
   "apiKey" : "YourAlgoliaApiKey",
   "index" : "YourIndexName"
 }
-
 ```
 
+### Geo-Search
 
-                                                                                
-			                                  IIIIIIIIIIIII                                 
-			                               IIIIIIIIIIIIIIIIII                               
-			                              IIIIIIIIIIIIIIIIIIII                              
-			                              IIIIIIIIIIIIIIIIIIIII                             
-			                              IIIIIIIIIIIIIIIIIIIII                             
-			                              I                 III                             
-			                                                                                
-			                                                                                
-			           III                     IIIIIIIII                                    
-			        IIIIIIIII            IIIIIIIIIIIIIIIIIIIII                              
-			       IIIIIIIII         IIIIIIIIIIIIIIIIIIIIIIIIIIIII                          
-			      IIIIIIII         IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                        
-			      IIIIIII        IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                      
-			      IIIII        IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                    
-			       III       IIIIIIIIIIIIIII               IIIIIIIIIIIIIII                  
-			        I       IIIIIIIIIIIII                     IIIIIIIIIIIII                 
-			               IIIIIIIIIII                           IIIIIIIIIII                
-			             IIIIIIIIIIII                             IIIIIIIIIIII              
-			            IIIIIIIIIII                     IIIII       IIIIIIIIIII             
-			            IIIIIIIIII                      IIIIIII      IIIIIIIIII             
-			           IIIIIIIIII                      IIIIIIIIII     IIIIIIIIII            
-			           IIIIIIIII                       IIIIIIIIIII     IIIIIIIII            
-			          IIIIIIIII                       IIIIIIIIIIIII     IIIIIIIII           
-			          IIIIIIII                        IIIIIIIIIIIII      IIIIIIII           
-			         IIIIIIIII                       IIIIIIIIIII         IIIIIIIII          
-			         IIIIIIIII                       IIIIIIII            IIIIIIIII          
-			         IIIIIIII                       IIIIII                IIIIIIII          
-			         IIIIIIII                       III                   IIIIIIII          
-			         IIIIIIII                       I                     IIIIIIII          
-			         IIIIIIII                                             IIIIIIII          
-			         IIIIIIIII                                           IIIIIIIII          
-			         IIIIIIIII                                           IIIIIIIII          
-			          IIIIIIII                                           IIIIIIII           
-			          IIIIIIIII                                         IIIIIIIII           
-			           IIIIIIIII                                       IIIIIIIII            
-			           IIIIIIIIII                                     IIIIIIIIII            
-			            IIIIIIIIII                                   IIIIIIIIII             
-			             IIIIIIIIII                                 IIIIIIIIII              
-			              IIIIIIIIIII                             IIIIIIIIIII               
-			               IIIIIIIIIIII                         IIIIIIIIIIII                
-			                IIIIIIIIIIIII                     IIIIIIIIIIIII                 
-			                 IIIIIIIIIIIIIIII             IIIIIIIIIIIIIIII                  
-			                   IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                    
-			                     IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                      
-			                       IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII                        
-			                          IIIIIIIIIIIIIIIIIIIIIIIIIII                           
-			                              IIIIIIIIIIIIIIIIIII
-
+You can make the connector generate the `"_geoloc": { "lat": XX, "lng": YY }` nested attribute by naming your latitude & longitude columns `_geoloc_lat` and `_geoloc_lng`.
