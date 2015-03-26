@@ -186,8 +186,8 @@ public abstract class Worker {
     protected java.sql.Connection database;
     protected final long batchSize;
     protected final String idField;
-    protected final String GEO_LAT_FIELD = "_geoloc.lat";
-    protected final String GEO_LNG_FIELD = "_geoloc.lng";
+    protected final String GEO_LAT_FIELD = "_geoloc_lat";
+    protected final String GEO_LNG_FIELD = "_geoloc_lng";
     protected final String source;
     protected final org.json.JSONObject userData;
     protected List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
