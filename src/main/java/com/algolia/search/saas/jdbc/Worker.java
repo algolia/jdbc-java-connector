@@ -109,17 +109,35 @@ public abstract class Worker {
             while (rs.next()) {
                 String objectID = null;
                 org.json.JSONObject obj = new org.json.JSONObject();
+
+                Object lat = null;
+                Object lng = null;
+
                 for (int i = 1; i < columns + 1; i++) {
                     try {
-                        if (rsmd.getColumnLabel(i).equals(idField)) {
+                        String colName = rsmd.getColumnLabel(i);
+
+                        if (colName.equals(idField)) {
                             objectID = rs.getObject(i).toString();
                             obj.put("objectID", objectID);
-                        } else {
-                        	if (rsmd.getColumnType(i) == Types.ARRAY) {
-                        		obj.put(rsmd.getColumnLabel(i), rs.getArray(i).getArray());
-                        	} else {
-                        		obj.put(rsmd.getColumnLabel(i), rs.getObject(i));
-                        	}
+                        } else { // TODO: handle all projected column name with . and bucket the fields as child objects
+                            int colType = rsmd.getColumnType(i);
+                            if (colType == Types.ARRAY) {
+                                obj.put(rsmd.getColumnLabel(i), rs.getArray(i).getArray());
+                            }
+                            else if(colName.equals(GEO_LAT_FIELD) && IsGeoValueType(colType)) {
+                                lat = rs.getObject(i);
+                                if(lng != null)
+                                    obj.put("_geoloc", BuildGeoJSON(lat, lng));
+                            }
+                            else if(colName.equals(GEO_LNG_FIELD) && IsGeoValueType(colType)) {
+                                lng = rs.getObject(i);
+                                if(lat != null)
+                                    obj.put("_geoloc", BuildGeoJSON(lat, lng));
+                            }
+                            else {
+                                obj.put(rsmd.getColumnLabel(i), rs.getObject(i));
+                            }
                         }
                     } catch (JSONException e) {
                         throw new Error(e);
@@ -136,10 +154,30 @@ public abstract class Worker {
             }
             push(actions);
             actions.clear();
-        } finally {
+            } finally {
             rs.close();
-        }
+            }
         Connector.LOGGER.info("  Query executed");
+    }
+
+    static private org.json.JSONObject BuildGeoJSON(Object lat, Object lng) throws org.json.JSONException {
+        org.json.JSONObject g = new org.json.JSONObject();
+        g.put("lat", lat);
+        g.put("lng", lng);
+        return g;
+    }
+
+    static protected boolean IsGeoValueType(int t) {
+        switch (t) {
+            case Types.DOUBLE:
+            case Types.FLOAT:
+            case Types.DECIMAL:
+            case Types.NUMERIC:
+            case Types.REAL:
+                return true;
+            default:
+                return false;
+        }
     }
 
     protected final JSONObject configuration;
@@ -148,6 +186,8 @@ public abstract class Worker {
     protected java.sql.Connection database;
     protected final long batchSize;
     protected final String idField;
+    protected final String GEO_LAT_FIELD = "_geoloc_lat";
+    protected final String GEO_LNG_FIELD = "_geoloc_lng";
     protected final String source;
     protected final org.json.JSONObject userData;
     protected List<org.json.JSONObject> actions = new ArrayList<org.json.JSONObject>();
