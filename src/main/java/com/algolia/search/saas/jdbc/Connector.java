@@ -92,6 +92,7 @@ public class Connector {
             Class.forName("com.mysql.jdbc.Driver");
             Class.forName("org.postgresql.Driver");
             Class.forName("org.sqlite.JDBC");
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
