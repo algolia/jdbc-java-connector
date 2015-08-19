@@ -4,7 +4,7 @@
 	<groupId>com.algolia</groupId>
 	<artifactId>jdbcconnector</artifactId>
 	<packaging>jar</packaging>
-	<version>1.10-SNAPSHOT</version>
+	<version>1.11</version>
 	<name>JDBC Java Connector</name>
 	<dependencies>
 		<dependency>

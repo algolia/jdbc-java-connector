@@ -29,7 +29,7 @@ public abstract class Worker {
         final String index = (String) configuration.get(Connector.CONF_INDEX);
         assert (index != null);
         this.client = new APIClient(applicationId, apiKey);
-        this.client.setExtraHeader("JDBC connector", "1.11");
+        this.client.setExtraHeader("JDBC connector", Connector.version);
         this.index = this.client.initIndex(index);
 
         // DB configuration
