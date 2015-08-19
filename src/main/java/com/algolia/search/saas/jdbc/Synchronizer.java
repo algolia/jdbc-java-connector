@@ -3,7 +3,10 @@ package com.algolia.search.saas.jdbc;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.cli.ParseException;
@@ -12,6 +15,7 @@ import org.json.JSONException;
 import org.json.simple.JSONObject;
 
 import com.algolia.search.saas.AlgoliaException;
+import com.algolia.search.saas.Query;
 
 public class Synchronizer extends Worker {
 
@@ -49,18 +53,16 @@ public class Synchronizer extends Worker {
 		Connector.LOGGER.info("Start synchronization job");
 		checkAndReconnect();
 		Connector.LOGGER.info("  Enumerating remote index");
-		int nbPages = 0;
-		int i = 0;
 		ids.clear();
-		do {
-			org.json.JSONObject elements = index.browse(i, 1000);
-			nbPages = elements.getInt("nbPages");
-			JSONArray hits = elements.getJSONArray("hits");
-			for (int j = 0; j < hits.length(); ++j) {
-				ids.add(hits.getJSONObject(j).getString("objectID"));
-			}
-			++i;
-		} while (i < nbPages);
+		Query q = new Query();
+		q.setAttributesToRetrieve(Arrays.asList("objectID"));
+		q.setAttributesToHighlight(new ArrayList<String>());
+		q.setAttributesToSnippet(new ArrayList<String>());
+		q.setHitsPerPage(1000);
+		Iterator<org.json.JSONObject> it = index.browse(new Query());
+		while (it.hasNext()) {
+			ids.add(it.next().getString("objectID"));
+		}
 		Connector.LOGGER.info("  Remote index enumerated (" + ids.size() + " record" + (ids.size() > 1 ? "s" : "") + " found)");
 
 		Connector.LOGGER.info("  Enumerate database");
