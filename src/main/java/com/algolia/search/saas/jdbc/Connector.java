@@ -22,7 +22,7 @@ import com.algolia.search.saas.AlgoliaException;
 public class Connector {
 
     public static final Logger LOGGER = Logger.getLogger("connector");
-    public static final String version = "1.11";
+    public static final String version = "1.12";
 
     public static final String CONF_SOURCE = "source";
     public static final String CONF_USERNAME = "username";
