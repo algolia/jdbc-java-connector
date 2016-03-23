@@ -59,7 +59,7 @@ public class Synchronizer extends Worker {
 		q.setAttributesToHighlight(new ArrayList<String>());
 		q.setAttributesToSnippet(new ArrayList<String>());
 		q.setHitsPerPage(1000);
-		Iterator<org.json.JSONObject> it = index.browse(new Query());
+		Iterator<org.json.JSONObject> it = index.browse(q);
 		while (it.hasNext()) {
 			ids.add(it.next().getString("objectID"));
 		}
