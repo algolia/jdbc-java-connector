@@ -1,6 +1,8 @@
 JDBC Java Connector
 ===================
 
+**WARNING** : This connector is deprecated, please use the [Java API CLient] (https://github.com/algolia/algoliasearch-client-java-2).
+
 This connector synchronizes your existing SQL database with Algolia's indices without requiring you to write a single line of code in your application or website. MySQL, PostgreSQL and Sqlite3 are currently supported.
 
 First, it will list all your rows with the `selectQuery` and perform the initial indexing. Then, every `refreshRate` seconds, it will look for updated rows using the `updateQuery` and send the updates to Algolia. Deletions will be detected every `deleteRate` minutes performing a full scan (+diff) of both your database and index.
