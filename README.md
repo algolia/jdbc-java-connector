@@ -1,7 +1,7 @@
 JDBC Java Connector
 ===================
 
-**WARNING** : This connector is deprecated, please use the [Java API CLient] (https://github.com/algolia/algoliasearch-client-java-2).
+**WARNING** : This connector is deprecated, please use the [Java API Client] (https://github.com/algolia/algoliasearch-client-java-2), or any other [API Client](https://www.algolia.com/doc).
 
 This connector synchronizes your existing SQL database with Algolia's indices without requiring you to write a single line of code in your application or website. MySQL, PostgreSQL and Sqlite3 are currently supported.
 
